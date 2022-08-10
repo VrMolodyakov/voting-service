@@ -1,0 +1,6 @@
+postgresqldb:
+  username: postgres
+  password: Loken
+  host: localhost
+  port: 5432
+  dbname: devdb
