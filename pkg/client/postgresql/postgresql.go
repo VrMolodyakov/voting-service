@@ -6,20 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
-
-type Client interface {
-	Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error)
-	Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error)
-	QueryRow(ctx context.Context, query string, args ...interface{}) pgx.Row
-	Begin(ctx context.Context) (pgx.Tx, error)
-	BeginFunc(ctx context.Context, f func(pgx.Tx) error) error
-	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
-	BeginTxFunc(ctx context.Context, txOption pgx.TxOptions, f func(pgx.Tx) error) error
-}
 
 type pgConfig struct {
 	Username string
