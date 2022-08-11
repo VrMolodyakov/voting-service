@@ -1,5 +1,7 @@
 FROM golang:alpine
 
+WORKDIR /app/voting-service
+
 COPY go.mod .
 COPY go.sum .
 ENV GOPATH=/
