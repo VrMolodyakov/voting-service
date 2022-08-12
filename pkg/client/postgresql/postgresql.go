@@ -30,8 +30,6 @@ func NewPgConfig(username string, password string, host string, port string, dat
 func NewClient(ctx context.Context, maxAttempts int, delay time.Duration, cfg *pgConfig) (pool *pgxpool.Pool, err error) {
 	connectUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
 	err = DoWithAttempts(func() error {
-		//ctx, cansel := context.WithTimeout(ctx, 10*time.Second)
-		//defer cansel()
 		config, err := pgxpool.ParseConfig(connectUrl)
 		if err != nil {
 			log.Fatalf("Failed while parsing config: %v\n", err)
