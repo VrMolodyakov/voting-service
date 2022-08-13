@@ -10,7 +10,7 @@ import (
 )
 
 type choiceRepository struct {
-	client *pgxpool.Pool
+	client PostgresClient
 	logger *logging.Logger
 }
 
@@ -18,18 +18,19 @@ func NewChoiceStorage(pool *pgxpool.Pool, logger *logging.Logger) *voteRepositor
 	return &voteRepository{client: pool, logger: logger}
 }
 
-func (c *choiceRepository) Insert(ctx context.Context, vote entity.Vote) error {
-	sql := `INSERT INTO vote_choice(choice_title,count,vote_id) VALUES($1,$2,$3)`
-	_, err := c.client.Exec(ctx, sql, vote.Title)
+func (c *choiceRepository) Insert(ctx context.Context, choice entity.Choice) (string, error) {
+	sql := `INSERT INTO vote_choice(choice_title,count,vote_id) VALUES($1,$2,$3) RETURNING choice_title`
+	var title string
+	err := c.client.QueryRow(ctx, sql, choice.Title, choice.Count, choice.VoteId).Scan(&title)
 	if err != nil {
 		err = psql.ErrExecuteQuery(err)
 		c.logger.Error(err)
-		return err
+		return "", err
 	}
-	return nil
+	return title, nil
 }
 
-func (c *choiceRepository) FindIdByVoteId(ctx context.Context, id int) ([]entity.Choice, error) {
+func (c *choiceRepository) FindChoicesByVoteId(ctx context.Context, id int) ([]entity.Choice, error) {
 	sql := `SELECT * FROM vote_choice WHERE vote_id = $1`
 	rows, err := c.client.Query(ctx, sql, id)
 	if err != nil {

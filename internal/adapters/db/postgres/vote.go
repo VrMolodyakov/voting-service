@@ -10,7 +10,7 @@ import (
 )
 
 type voteRepository struct {
-	client *pgxpool.Pool
+	client PostgresClient
 	logger *logging.Logger
 }
 
