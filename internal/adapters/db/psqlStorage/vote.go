@@ -19,7 +19,7 @@ func NewVoteStorage(pool *pgxpool.Pool, logger *logging.Logger) *voteRepository 
 }
 
 func (v *voteRepository) Insert(ctx context.Context, vote entity.Vote) (int, error) {
-	sql := `INSERT INTO vote(title) VALUES($1) RETURNING vote_id`
+	sql := `INSERT INTO vote(vote_title) VALUES($1) RETURNING vote_id`
 	var id int
 	err := v.client.QueryRow(ctx, sql, vote.Title).Scan(&id)
 	if err != nil {

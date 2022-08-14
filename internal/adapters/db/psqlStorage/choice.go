@@ -14,8 +14,8 @@ type choiceRepository struct {
 	logger *logging.Logger
 }
 
-func NewChoiceStorage(pool *pgxpool.Pool, logger *logging.Logger) *voteRepository {
-	return &voteRepository{client: pool, logger: logger}
+func NewChoiceStorage(pool *pgxpool.Pool, logger *logging.Logger) *choiceRepository {
+	return &choiceRepository{client: pool, logger: logger}
 }
 
 func (c *choiceRepository) Insert(ctx context.Context, choice entity.Choice) (string, error) {

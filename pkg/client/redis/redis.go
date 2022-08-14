@@ -24,7 +24,7 @@ func NewRdConfig(password string, host string, port string, dbNumber int) rdConf
 }
 
 func NewClient(ctx context.Context, cfg *rdConfig) (*redis.Client, error) {
-	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	address := fmt.Sprintf("%v:%v", cfg.Host, cfg.Port)
 	client := redis.NewClient(
 		&redis.Options{
 			Addr:     address,
