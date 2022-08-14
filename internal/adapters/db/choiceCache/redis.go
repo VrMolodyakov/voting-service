@@ -1,4 +1,4 @@
-package redis
+package choiceCache
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ type choiceCache struct {
 	client *redis.Client
 }
 
-func NewRedisClient(client *redis.Client, logger *logging.Logger) *choiceCache {
+func NewChoiceCache(client *redis.Client, logger *logging.Logger) *choiceCache {
 	return &choiceCache{logger: logger, client: client}
 }
 

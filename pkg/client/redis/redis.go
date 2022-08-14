@@ -10,11 +10,11 @@ import (
 type rdConfig struct {
 	Password string
 	Host     string
-	Port     int
+	Port     string
 	DbNumber int
 }
 
-func GetRdConfig(password string, host string, port int, dbNumber int) rdConfig {
+func NewRdConfig(password string, host string, port string, dbNumber int) rdConfig {
 	return rdConfig{
 		Password: password,
 		Host:     host,
