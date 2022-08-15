@@ -167,3 +167,56 @@ func TestFindIdByVoteId(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdate(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := logging.GetLogger("debug")
+	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+	choiceRepo := choiceRepository{client: mockPool, logger: logger}
+
+	type args struct {
+		voteId int
+		count  int
+		title  string
+	}
+
+	type mockCall func()
+	tests := []struct {
+		title   string
+		mock    mockCall
+		input   args
+		isError bool
+	}{
+		{
+			title: "should update successfully",
+			input: args{1, 1, "title"},
+			mock: func() {
+				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil)
+			},
+			isError: false,
+		},
+		{
+			title: "update should return error",
+			input: args{1, 1, "title"},
+			mock: func() {
+				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("internal error"))
+			},
+			isError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			test.mock()
+			err := choiceRepo.UpdateByTitleAndId(context.Background(), test.input.count, test.input.voteId, test.input.title)
+			if !test.isError {
+				assert.Equal(t, err, nil)
+			} else {
+				assert.Error(t, err)
+			}
+
+		})
+	}
+}
