@@ -8,17 +8,17 @@ import (
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 )
 
-type voteRepository interface {
+type VoteRepository interface {
 	Insert(ctx context.Context, vote entity.Vote) (int, error)
 	FindIdByTitle(ctx context.Context, title string) (int, error)
 }
 
 type voteService struct {
-	repo   voteRepository
+	repo   VoteRepository
 	logger *logging.Logger
 }
 
-func NewVoteService(repo voteRepository, logger *logging.Logger) *voteService {
+func NewVoteService(repo VoteRepository, logger *logging.Logger) *voteService {
 	return &voteService{repo: repo, logger: logger}
 }
 

@@ -45,3 +45,12 @@ func (c *choiceCache) Get(voteTitle string, choiceTitle string) (int, error) {
 	}
 	return count, nil
 }
+
+func (c *choiceCache) GetAll(voteTitle string) (map[string]string, error) {
+	m, err := c.client.HGetAll(voteTitle).Result()
+	if err != nil {
+		c.logger.Info(err)
+		return nil, err
+	}
+	return m, nil
+}

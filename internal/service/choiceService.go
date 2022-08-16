@@ -84,6 +84,10 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 	}
 }
 
+func (c *choiceService) GetVoteResult(voteTitle string) {
+
+}
+
 /*
 	request -> (
 		vot title
