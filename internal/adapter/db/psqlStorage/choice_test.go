@@ -18,6 +18,25 @@ type choiceMockRow struct {
 	Err   error
 }
 
+type choiceEntityRow struct {
+	title  string
+	voteId int
+	count  int
+	Err    error
+}
+
+func (this choiceEntityRow) Scan(dest ...interface{}) error {
+	if this.title == "" {
+		return pgx.ErrNoRows
+	}
+	choice := dest[0].(*entity.Choice)
+
+	choice.VoteId = this.voteId
+	choice.Title = this.title
+	choice.Count = this.count
+	return nil
+}
+
 func (this choiceMockRow) Scan(dest ...interface{}) error {
 	if this.title == "" {
 		return pgx.ErrNoRows
@@ -168,7 +187,7 @@ func TestFindIdByVoteId(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdateById(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -217,6 +236,67 @@ func TestUpdate(t *testing.T) {
 				assert.Error(t, err)
 			}
 
+		})
+	}
+}
+
+func TestFindChoicesByVoteIdAndTitle(t *testing.T) {
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := logging.GetLogger("debug")
+	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+	choiceRepo := choiceRepository{client: mockPool, logger: logger}
+	type mockCall func()
+	type args struct {
+		voteId int
+		title  string
+	}
+	tests := []struct {
+		title   string
+		mock    mockCall
+		input   args
+		want    entity.Choice
+		isError bool
+	}{
+		{
+			title: "should find successfully",
+			input: args{
+				title:  "choice title",
+				voteId: 1,
+			},
+			mock: func() {
+				row := choiceEntityRow{"choice title", 1, 1, nil}
+				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+			},
+			want:    entity.Choice{"choice title", 1, 1},
+			isError: false,
+		},
+		{
+			title: "should return error due to psql error",
+			input: args{
+				title:  "choice title",
+				voteId: 1,
+			},
+			mock: func() {
+				row := choiceMockRow{"", errors.New("psql error")}
+				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+			},
+			want:    entity.Choice{"choice title", 1, 1},
+			isError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			test.mock()
+			got, err := choiceRepo.FindChoicesByVoteIdAndTitle(context.Background(), test.input.voteId, test.input.title)
+			if test.isError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, test.want, got)
+			}
 		})
 	}
 }

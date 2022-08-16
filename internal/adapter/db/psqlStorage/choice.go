@@ -51,6 +51,20 @@ func (c *choiceRepository) FindChoicesByVoteId(ctx context.Context, id int) ([]e
 	return choices, nil
 }
 
+func (c *choiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, id int, choiceTitle string) (entity.Choice, error) {
+	sql := `SELECT * 
+			FROM choice 
+			WHERE vote_id = $1 AND choice_title = $2`
+	var choice entity.Choice
+	err := c.client.QueryRow(ctx, sql, id).Scan(&choice)
+	if err != nil {
+		err = psql.ErrExecuteQuery(err)
+		c.logger.Error(err)
+		return entity.Choice{}, err
+	}
+	return choice, nil
+}
+
 func (c *choiceRepository) UpdateByTitleAndId(ctx context.Context, count int, voteId int, title string) error {
 	sql := `UPDATE choice
 			SET count = count + $1

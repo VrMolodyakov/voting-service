@@ -5,6 +5,12 @@ import (
 	"time"
 
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
+	"github.com/VrMolodyakov/vote-service/internal/errors"
+	"github.com/VrMolodyakov/vote-service/pkg/logging"
+)
+
+const (
+	expire time.Duration = 5
 )
 
 type CacheService interface {
@@ -19,49 +25,104 @@ type VoteService interface {
 
 type choiceRepository interface {
 	UpdateByTitleAndId(ctx context.Context, count int, voteId int, title string) error
+	FindChoicesByVoteIdAndTitle(ctx context.Context, id int, choiceTitle string) (entity.Choice, error)
 	FindChoicesByVoteId(ctx context.Context, id int) ([]entity.Choice, error)
 	Insert(ctx context.Context, choice entity.Choice) (string, error)
 }
 
 type choiceService struct {
-	cache cacheService
-	vote  VoteService
-	repo  choiceRepository
+	cache  CacheService
+	vote   VoteService
+	repo   choiceRepository
+	logger *logging.Logger
 }
 
-func NewChoiceService(cache cacheService, vote VoteService, repo choiceRepository) *choiceService {
-	return &choiceService{vote: vote, cache: cache, repo: repo}
+func NewChoiceService(cache CacheService, vote VoteService, repo choiceRepository, logger *logging.Logger) *choiceService {
+	return &choiceService{vote: vote, cache: cache, repo: repo, logger: logger}
 }
 
 func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choiceTitle string, count int) error {
-
-	return nil
-}
-
-/*
-lastCount, err := c.cache.Get(voteTitle, choiceTitle)
+	lastCount, err := c.cache.Get(voteTitle, choiceTitle)
 	if err != nil {
 		id, err := c.vote.GetByTitle(ctx, voteTitle)
 		if err != nil {
 			return errors.ErrTitleNotExist
 		}
-		choices, err := c.repo.FindChoicesByVoteId(ctx, id)
+		choice, err := c.repo.FindChoicesByVoteIdAndTitle(ctx, id, choiceTitle)
 		if err != nil {
+			return errors.ErrChoiceTitleNotExist
+		}
+		updateCount := choice.Count + count
+		go func() {
+			err := c.cache.Save(voteTitle, choice.Title, updateCount, time.Minute*expire)
+			if err != nil {
+				c.logger.Errorf("cache.Save() error due to %v", err)
+			}
+		}()
+		return c.repo.UpdateByTitleAndId(ctx, updateCount, id, choiceTitle)
+
+	} else {
+		newCount := lastCount + count
+		duration := time.Minute * expire
+		err := c.cache.Save(voteTitle, choiceTitle, newCount, duration)
+		go func() {
+			id, err := c.vote.GetByTitle(ctx, voteTitle)
+			if err != nil {
+				c.logger.Errorf("vote.GetByTitle error due to %v", err)
+				return
+			}
+			err = c.repo.UpdateByTitleAndId(ctx, newCount, id, choiceTitle)
+			if err != nil {
+				c.logger.Errorf("repo.UpdateByTitleAndId error due to %v", err)
+			}
+		}()
+		if err != nil {
+			c.logger.Errorf("cache.Save error due to %v", err)
 			return err
 		}
-		for i := 0; i < len(choices); i++ {
+		return nil
+	}
+}
+
+/*
+	request -> (
+		vot title
+		choice title
+
+	)->update Choice (
+		voteTitle string
+		choiceTitle string
+		count int
+	)->if in cache (
+		update cache
+		update psql
+		return nil (200 response)
+	)->not in cache(
+		check title is present
+		choice is present
+		update count
+		save to cache
+		update psql
+		return nil (200 response)
+	)
+
+
+
+
+
+
+
+
+
+
+
+for i := 0; i < len(choices); i++ {
 			if choices[i].Title == choiceTitle {
 				choices[i].Count += count
 
 				return c.repo.UpdateByTitleAndId(ctx, choices[i].Count, id, choiceTitle)
 			}
 		}
-	} else {
-		duration := time.Minute * 5
-		err := c.cache.Save(voteTitle, choiceTitle, lastCount+count, duration)
-		if err != nil {
-			return err
-		}
-	}
+
 
 */
