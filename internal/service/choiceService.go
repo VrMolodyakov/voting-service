@@ -77,14 +77,26 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 			}
 		}()
 		if err != nil {
-			c.logger.Errorf("cache.Save error due to %v", err)
+			c.logger.Errorf("cache.Save() error due to %v", err)
 			return err
 		}
 		return nil
 	}
 }
 
-func (c *choiceService) GetVoteResult(voteTitle string) {
+func (c *choiceService) GetVoteResult(ctx context.Context, voteTitle string) ([]entity.Choice, error) {
+	c.logger.Debugf("try to find with choices title %v", voteTitle)
+	id, err := c.vote.GetByTitle(ctx, voteTitle)
+	if err != nil {
+		c.logger.Errorf("GetVoteResult() error due to %v", err)
+		return nil, errors.ErrTitleNotExist
+	}
+	choices, err := c.repo.FindChoicesByVoteId(ctx, id)
+	if err != nil {
+		c.logger.Errorf("GetVoteResult() error due to %v", err)
+		return nil, err
+	}
+	return choices, nil
 
 }
 
