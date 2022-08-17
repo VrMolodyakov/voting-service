@@ -35,24 +35,17 @@ func TestInsertVote(t *testing.T) {
 	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
 	voteRepo := voteRepository{client: mockPool, logger: logger}
 
-	type args struct {
-		v entity.Vote
-	}
-
 	type mockCall func()
 	tests := []struct {
 		title   string
 		mock    mockCall
-		input   entity.Vote
+		input   string
 		want    int
 		isError bool
 	}{
 		{
 			title: "should insert successfully",
-			input: entity.Vote{
-				Title: "test title",
-				Id:    1,
-			},
+			input: "test title",
 			mock: func() {
 				row := voteMockRow{1, nil}
 				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
@@ -62,9 +55,7 @@ func TestInsertVote(t *testing.T) {
 		},
 		{
 			title: "",
-			input: entity.Vote{
-				Title: "",
-			},
+			input: "",
 			mock: func() {
 				row := voteMockRow{0, errors.New("psql error")}
 				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)

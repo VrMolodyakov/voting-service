@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/VrMolodyakov/vote-service/internal/service/mocks"
+	"github.com/VrMolodyakov/vote-service/internal/domain/service/mocks"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

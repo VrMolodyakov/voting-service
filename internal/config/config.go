@@ -12,7 +12,8 @@ import (
 )
 
 type Config struct {
-	Level      string  `yaml : "level"`
+	Port       string  `yaml : "port"`
+	LogLvl     string  `yaml : "loglvl"`
 	PostgreSql Postgre `yaml : "postgresql"`
 	Redis      Redis   `yaml : "redis"`
 }
@@ -48,14 +49,10 @@ func GetConfig() *Config {
 		dockerPath, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 		if exist, _ := Exists(configPath); exist {
 			if err := cleanenv.ReadConfig(root+"\\config\\config.yaml", instance); err != nil {
-				help, _ := cleanenv.GetDescription(instance, nil)
-				logger.Info(help)
 				logger.Fatal(err)
 			}
 		} else if exist, _ := Exists(dockerPath + "/config/config.yaml"); exist {
 			if err := cleanenv.ReadConfig(dockerPath+"/config/config.yaml", instance); err != nil {
-				help, _ := cleanenv.GetDescription(instance, nil)
-				logger.Info(help)
 				logger.Fatal(err)
 			}
 		}

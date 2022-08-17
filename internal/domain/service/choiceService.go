@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
-	"github.com/VrMolodyakov/vote-service/internal/errors"
+	"github.com/VrMolodyakov/vote-service/internal/errs"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 )
 
@@ -46,11 +46,11 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 	if err != nil {
 		id, err := c.vote.GetByTitle(ctx, voteTitle)
 		if err != nil {
-			return errors.ErrTitleNotExist
+			return errs.ErrTitleNotExist
 		}
 		choice, err := c.repo.FindChoicesByVoteIdAndTitle(ctx, id, choiceTitle)
 		if err != nil {
-			return errors.ErrChoiceTitleNotExist
+			return errs.ErrChoiceTitleNotExist
 		}
 		updateCount := choice.Count + count
 		go func() {
@@ -89,7 +89,7 @@ func (c *choiceService) GetVoteResult(ctx context.Context, voteTitle string) ([]
 	id, err := c.vote.GetByTitle(ctx, voteTitle)
 	if err != nil {
 		c.logger.Errorf("GetVoteResult() error due to %v", err)
-		return nil, errors.ErrTitleNotExist
+		return nil, errs.ErrTitleNotExist
 	}
 	choices, err := c.repo.FindChoicesByVoteId(ctx, id)
 	if err != nil {
@@ -98,6 +98,13 @@ func (c *choiceService) GetVoteResult(ctx context.Context, voteTitle string) ([]
 	}
 	return choices, nil
 
+}
+
+func (c *choiceService) CreateChoice(ctx context.Context, choice entity.Choice) (string, error) {
+	if choice.Title == "" {
+		return "", errs.ErrEmptyChoiceTitle
+	}
+	return c.repo.Insert(ctx, choice)
 }
 
 /*

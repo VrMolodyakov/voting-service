@@ -5,8 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
-	"github.com/VrMolodyakov/vote-service/internal/service/mocks"
+	"github.com/VrMolodyakov/vote-service/internal/domain/service/mocks"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +19,7 @@ func TestCreate(t *testing.T) {
 	testCases := []struct {
 		title    string
 		mockCall mock
-		input    entity.Vote
+		input    string
 		want     int
 		isError  bool
 	}{
@@ -31,7 +30,7 @@ func TestCreate(t *testing.T) {
 				logger := logging.GetLogger("debug")
 				return NewVoteService(mockRepo, logger)
 			},
-			input:   entity.Vote{"voteTitle", 1},
+			input:   "voteTitle",
 			want:    1,
 			isError: false,
 		},
@@ -42,7 +41,7 @@ func TestCreate(t *testing.T) {
 				logger := logging.GetLogger("debug")
 				return NewVoteService(mockRepo, logger)
 			},
-			input:   entity.Vote{"voteTitle", 1},
+			input:   "voteTitle",
 			want:    -1,
 			isError: true,
 		},
@@ -52,7 +51,7 @@ func TestCreate(t *testing.T) {
 				logger := logging.GetLogger("debug")
 				return NewVoteService(mockRepo, logger)
 			},
-			input:   entity.Vote{"", 1},
+			input:   "",
 			want:    -1,
 			isError: true,
 		},

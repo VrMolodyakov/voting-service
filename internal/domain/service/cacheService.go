@@ -3,7 +3,7 @@ package service
 import (
 	"time"
 
-	"github.com/VrMolodyakov/vote-service/internal/errors"
+	"github.com/VrMolodyakov/vote-service/internal/errs"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 )
 
@@ -22,15 +22,21 @@ func NewCahceService(cache RedisCache, logger *logging.Logger) *cacheService {
 }
 
 func (c *cacheService) Save(voteTitle string, choiceTitle string, count int, expireAt time.Duration) error {
-	if voteTitle == "" || choiceTitle == "" {
-		return errors.ErrEmptyTitle
+	if voteTitle == "" {
+		return errs.ErrEmptyVoteTitle
+	}
+	if voteTitle == "" {
+		return errs.ErrEmptyChoiceTitle
 	}
 	return c.cache.Set(voteTitle, choiceTitle, count, expireAt)
 }
 
 func (c *cacheService) Get(voteTitle string, choiceTitle string) (int, error) {
-	if voteTitle == "" || choiceTitle == "" {
-		return -1, errors.ErrEmptyTitle
+	if voteTitle == "" {
+		return -1, errs.ErrEmptyVoteTitle
+	}
+	if voteTitle == "" {
+		return -1, errs.ErrEmptyChoiceTitle
 	}
 	return c.cache.Get(voteTitle, choiceTitle)
 }
