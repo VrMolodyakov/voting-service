@@ -17,10 +17,16 @@ func NewVoteStorage(pool *pgxpool.Pool, logger *logging.Logger) *voteRepository 
 	return &voteRepository{client: pool, logger: logger}
 }
 
+//`INSERT INTO vote(vote_title) VALUES($1) RETURNING vote_id`
 func (v *voteRepository) Insert(ctx context.Context, vote string) (int, error) {
-	sql := `INSERT INTO vote(vote_title) VALUES($1) RETURNING vote_id`
+	sql := `INSERT INTO vote (vote_title)
+			SELECT $1
+			WHERE
+				NOT EXISTS (
+					SELECT vote_id FROM vote WHERE vote_title=$2
+				) RETURNING vote_id`
 	var id int
-	err := v.client.QueryRow(ctx, sql, vote).Scan(&id)
+	err := v.client.QueryRow(ctx, sql, vote, vote).Scan(&id)
 	if err != nil {
 		err = psql.ErrExecuteQuery(err)
 		v.logger.Error(err)
