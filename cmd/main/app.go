@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "context"
-	"fmt"
 	_ "fmt"
 	_ "time"
 
@@ -17,16 +16,8 @@ import (
 func main() {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger(cfg.LogLvl)
-	fmt.Println(logger.Level)
-	logger.Info(cfg.LogLvl)
 	app := internal.NewApp(logger, cfg)
 	app.Run()
-}
-
-func check(logger *logging.Logger, err error) {
-	if err != nil {
-		logger.Fatal(err)
-	}
 }
 
 /*

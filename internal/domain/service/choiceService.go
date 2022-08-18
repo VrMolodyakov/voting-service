@@ -19,7 +19,7 @@ type CacheService interface {
 }
 
 type VoteService interface {
-	Create(ctx context.Context, vote entity.Vote) (int, error)
+	Create(ctx context.Context, title string) (int, error)
 	GetByTitle(ctx context.Context, title string) (int, error)
 }
 
