@@ -60,6 +60,10 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func GetChoices(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func errorResponse(w http.ResponseWriter, err error) {
 	if errors.Is(err, errs.ErrEmptyChoiceTitle) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
