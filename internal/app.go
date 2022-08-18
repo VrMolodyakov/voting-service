@@ -46,19 +46,13 @@ func (a *app) checkErr(err error) {
 func (a *app) startHttp() {
 	a.logger.Info("start http server")
 	a.initialize()
-	a.initializeRouters()
 	a.logger.Info("start listening...")
 	port := fmt.Sprintf(":%v", a.cfg.Port)
 	log.Fatal(http.ListenAndServe(port, a.router))
 }
 
 func (a *app) initialize() {
-
-	a.router = mux.NewRouter()
-	a.initializeRouters()
-}
-
-func (a *app) initializeRouters() {
+	a.logger.Debug("start init handler")
 	pgCfg := postgresql.NewPgConfig(
 		a.cfg.PostgreSql.Username,
 		a.cfg.PostgreSql.Password,
@@ -76,5 +70,12 @@ func (a *app) initializeRouters() {
 	choiceCache := choiceCache.NewChoiceCache(rdClient, a.logger)
 	cacheService := service.NewCahceService(choiceCache, a.logger)
 	choiceService := service.NewChoiceService(cacheService, voteService, choiceRepo, a.logger)
-	a.router.HandleFunc("/vote/create", handler.NewVoteHandler(a.logger, voteService, choiceService).Create)
+	a.router = mux.NewRouter()
+	a.initializeRouters(choiceService, voteService)
+}
+
+func (a *app) initializeRouters(choiceService handler.ChoiceService, voteService handler.VoteService) {
+	h := handler.NewVoteHandler(a.logger, voteService, choiceService)
+	a.router.HandleFunc("/api/vote", h.Create).Methods("POST")
+	a.router.HandleFunc("/api/vote", h.GetChoices).Methods("GET")
 }

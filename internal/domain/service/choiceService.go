@@ -42,6 +42,7 @@ func NewChoiceService(cache CacheService, vote VoteService, repo choiceRepositor
 }
 
 func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choiceTitle string, count int) error {
+	c.logger.Debug("try to update choice with vote title = %v, choice title = %v,count = %v", voteTitle, choiceTitle, count)
 	lastCount, err := c.cache.Get(voteTitle, choiceTitle)
 	if err != nil {
 		id, err := c.vote.GetByTitle(ctx, voteTitle)

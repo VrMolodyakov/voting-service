@@ -3,11 +3,11 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
 
-	"github.com/VrMolodyakov/vote-service/pkg/logging"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
@@ -43,17 +43,16 @@ func GetConfig() *Config {
 		root := filepath.Dir(filepath.Dir(path))
 		fmt.Println("dir2:", root)
 		instance = &Config{}
-		logger := logging.GetLogger("info")
-		logger.Info("start config initialisation")
+		log.Println("start config initialisation")
 		configPath := root + "\\config\\config.yaml"
 		dockerPath, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 		if exist, _ := Exists(configPath); exist {
 			if err := cleanenv.ReadConfig(root+"\\config\\config.yaml", instance); err != nil {
-				logger.Fatal(err)
+				log.Fatal(err)
 			}
 		} else if exist, _ := Exists(dockerPath + "/config/config.yaml"); exist {
 			if err := cleanenv.ReadConfig(dockerPath+"/config/config.yaml", instance); err != nil {
-				logger.Fatal(err)
+				log.Fatal(err)
 			}
 		}
 

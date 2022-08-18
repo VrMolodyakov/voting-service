@@ -22,6 +22,7 @@ func NewVoteService(repo VoteRepository, logger *logging.Logger) *voteService {
 }
 
 func (v *voteService) Create(ctx context.Context, title string) (int, error) {
+	v.logger.Debugf("try to create vote with title %v", title)
 	if title == "" {
 		return -1, errs.ErrEmptyVoteTitle
 	}
@@ -29,6 +30,7 @@ func (v *voteService) Create(ctx context.Context, title string) (int, error) {
 }
 
 func (v *voteService) GetByTitle(ctx context.Context, title string) (int, error) {
+	v.logger.Debugf("try to get vote with title %v", title)
 	if title == "" {
 		return -1, errs.ErrEmptyVoteTitle
 	}

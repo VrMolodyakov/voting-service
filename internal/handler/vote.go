@@ -26,6 +26,7 @@ func NewVoteHandler(logger *logging.Logger, voteService VoteService, choiceServi
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("inside Create handler")
 	var vote VoteRequest
 	err := json.NewDecoder(r.Body).Decode(&vote)
 	if err != nil {
@@ -60,14 +61,33 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetChoices(w http.ResponseWriter, r *http.Request) {
-
+func (h *handler) GetChoices(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("inside GetChoices handler")
+	var vote VoteInfoRequest
+	err := json.NewDecoder(r.Body).Decode(&vote)
+	if err != nil {
+		errorResponse(w, err)
+	}
+	ctx := r.Context()
+	choices, err := h.choiceService.GetVoteResult(ctx, vote.VoteTitle)
+	if err != nil {
+		errorResponse(w, err)
+	}
+	jsonReponce, err := json.MarshalIndent(choices, prefix, indent)
+	if err != nil {
+		errorResponse(w, err)
+	}
+	h.logger.Debug(vote)
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonReponce)
 }
 
 func errorResponse(w http.ResponseWriter, err error) {
 	if errors.Is(err, errs.ErrEmptyChoiceTitle) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else if errors.Is(err, errs.ErrEmptyVoteTitle) {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	} else if errors.Is(err, errs.ErrTitleNotExist) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

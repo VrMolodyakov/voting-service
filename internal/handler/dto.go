@@ -5,8 +5,13 @@ type VoteRequest struct {
 	Choices   []string `json:"choices"`
 }
 
+type VoteInfoRequest struct {
+	VoteTitle string `json:"vote"`
+}
+
 type ChoiceRequest struct {
-	ChoiceTitle string
+	VoteTitle   string `json:"vote"`
+	ChoiceTitle string `json:"choice"`
 }
 
 type VoteResponse struct {
