@@ -9,6 +9,7 @@ import (
 type VoteService interface {
 	Create(ctx context.Context, vote string) (int, error)
 	GetByTitle(ctx context.Context, title string) (int, error)
+	DeleteVoteById(ctx context.Context, id string) error
 }
 
 type ChoiceService interface {

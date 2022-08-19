@@ -3,7 +3,8 @@ CREATE TABLE vote(
     vote_title VARCHAR(200) NOT NULL
 );
 CREATE TABLE choice(
-    choice_title VARCHAR(200) PRIMARY KEY,
+    choice_title VARCHAR(200),
     count int,
-    vote_id INT REFERENCES vote(vote_id) ON DELETE CASCADE 
+    vote_id INT REFERENCES vote(vote_id) ON DELETE CASCADE,
+    PRIMARY KEY(choice_title,vote_id)
 );

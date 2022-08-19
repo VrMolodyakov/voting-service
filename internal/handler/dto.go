@@ -1,15 +1,15 @@
 package handler
 
-type VoteRequest struct {
+type FullVoteRequest struct {
 	VoteTitle string   `json:"vote"`
 	Choices   []string `json:"choices"`
 }
 
-type VoteInfoRequest struct {
+type VoteTitleRequest struct {
 	VoteTitle string `json:"vote"`
 }
 
-type ChoiceRequest struct {
+type UpdateChoiceRequest struct {
 	VoteTitle   string `json:"vote"`
 	ChoiceTitle string `json:"choice"`
 }

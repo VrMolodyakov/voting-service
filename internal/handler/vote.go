@@ -8,6 +8,7 @@ import (
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
 	"github.com/VrMolodyakov/vote-service/internal/errs"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -27,7 +28,7 @@ func NewVoteHandler(logger *logging.Logger, voteService VoteService, choiceServi
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("inside Create handler")
-	var vote VoteRequest
+	var vote FullVoteRequest
 	err := json.NewDecoder(r.Body).Decode(&vote)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -54,6 +55,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	jsonReponce, err := json.MarshalIndent(respose, prefix, indent)
 	if err != nil {
 		errorResponse(w, err)
+		return
 	}
 	h.logger.Debug(vote)
 	w.WriteHeader(http.StatusOK)
@@ -62,37 +64,72 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetChoices(w http.ResponseWriter, r *http.Request) {
-	h.logger.Debug("inside GetChoices handler")
-	var vote VoteInfoRequest
+	var vote VoteTitleRequest
 	err := json.NewDecoder(r.Body).Decode(&vote)
 	if err != nil {
 		errorResponse(w, err)
+		return
 	}
+	h.logger.Debugf("try to get choices for %v", vote)
 	ctx := r.Context()
 	choices, err := h.choiceService.GetVoteResult(ctx, vote.VoteTitle)
 	if err != nil {
 		errorResponse(w, err)
+		return
 	}
-	jsonReponce, err := json.MarshalIndent(choices, prefix, indent)
+	choiceDto := make([]ChoiceResponse, 0, len(choices))
+	for _, choice := range choices {
+		choiceDto = append(choiceDto, choiceToDto(choice))
+	}
+	jsonReponce, err := json.MarshalIndent(choiceDto, prefix, indent)
 	if err != nil {
 		errorResponse(w, err)
+		return
 	}
 	h.logger.Debug(vote)
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonReponce)
 }
 
+func (h *handler) UpdateChoice(w http.ResponseWriter, r *http.Request) {
+	var updateReq UpdateChoiceRequest
+	err := json.NewDecoder(r.Body).Decode(&updateReq)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+	h.logger.Debugf("try tot update choice %v", updateReq)
+	ctx := r.Context()
+	err = h.choiceService.UpdateChoice(ctx, updateReq.VoteTitle, updateReq.ChoiceTitle, 1)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *handler) DeleteVote(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	h.logger.Debugf("try tot delete vote %v", id)
+	ctx := r.Context()
+	err := h.voteService.DeleteVoteById(ctx, id)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func errorResponse(w http.ResponseWriter, err error) {
-	if errors.Is(err, errs.ErrEmptyChoiceTitle) {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	} else if errors.Is(err, errs.ErrEmptyVoteTitle) {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	} else if errors.Is(err, errs.ErrTitleNotExist) {
+	if errors.Is(err, errs.ErrEmptyChoiceTitle) ||
+		errors.Is(err, errs.ErrEmptyVoteTitle) ||
+		errors.Is(err, errs.ErrTitleNotExist) ||
+		errors.Is(err, errs.ErrChoiceTitleNotExist) ||
+		errors.Is(err, errs.ErrTitleAlreadyExist) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	return
 }
 
 func dtoToChoices(voteId int, choices []string) []entity.Choice {
@@ -104,16 +141,6 @@ func dtoToChoices(voteId int, choices []string) []entity.Choice {
 	return chs
 }
 
-/*
-
-choices := make([]ChoiceResponse, 0)
-	for _, v := range vote.Choices {
-		choices = append(choices, ChoiceResponse{v, 0})
-	}
-	resp := VoteResponse{vote.VoteTitle, choices}
-	w.WriteHeader(http.StatusOK)
-	jsonReponce, _ := json.MarshalIndent(resp, prefix, indent)
-	w.Write(jsonReponce)
-	h.logger.Debug(vote)
-
-*/
+func choiceToDto(choice entity.Choice) ChoiceResponse {
+	return ChoiceResponse{ChoiceTitle: choice.Title, Count: choice.Count}
+}

@@ -130,3 +130,61 @@ func TestGetByTitle(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteByTitle(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockRepo := mocks.NewMockVoteRepository(ctrl)
+	defer ctrl.Finish()
+	type mock func() *voteService
+	testCases := []struct {
+		title    string
+		mockCall mock
+		input    string
+		want     int
+		isError  bool
+	}{
+		{
+			title: "Success Create and return nil",
+			mockCall: func() *voteService {
+				mockRepo.EXPECT().DeleteVote(gomock.Any(), gomock.Any()).Return(nil)
+				logger := logging.GetLogger("debug")
+				return NewVoteService(mockRepo, logger)
+			},
+			input:   "some id",
+			want:    1,
+			isError: false,
+		},
+		{
+			title: "Error in repo Insert and return nil",
+			mockCall: func() *voteService {
+				mockRepo.EXPECT().DeleteVote(gomock.Any(), gomock.Any()).Return(errors.New("repo internal error"))
+				logger := logging.GetLogger("debug")
+				return NewVoteService(mockRepo, logger)
+			},
+			input:   "some id",
+			want:    -1,
+			isError: true,
+		},
+		{
+			title: "wrong vote titlle and Get should return error",
+			mockCall: func() *voteService {
+				logger := logging.GetLogger("debug")
+				return NewVoteService(mockRepo, logger)
+			},
+			input:   "",
+			want:    -1,
+			isError: true,
+		},
+	}
+	for _, test := range testCases {
+		t.Run(test.title, func(t *testing.T) {
+			voteService := test.mockCall()
+			err := voteService.DeleteVoteById(context.Background(), test.input)
+			if !test.isError {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}

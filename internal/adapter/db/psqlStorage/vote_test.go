@@ -133,3 +133,49 @@ func TestFindByTitle(t *testing.T) {
 		})
 	}
 }
+
+func TestDelete(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	logger := logging.GetLogger("debug")
+	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+	voteRepo := voteRepository{client: mockPool, logger: logger}
+
+	type mockCall func()
+	tests := []struct {
+		title   string
+		mock    mockCall
+		input   string
+		isError bool
+	}{
+		{
+			title: "should update successfully",
+			input: "title to delete",
+			mock: func() {
+				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil)
+			},
+			isError: false,
+		},
+		{
+			title: "update should return error",
+			input: "title to delete",
+			mock: func() {
+				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("internal error"))
+			},
+			isError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			test.mock()
+			err := voteRepo.DeleteVote(context.Background(), test.input)
+			if !test.isError {
+				assert.Equal(t, err, nil)
+			} else {
+				assert.Error(t, err)
+			}
+
+		})
+	}
+}

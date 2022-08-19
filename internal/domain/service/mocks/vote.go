@@ -34,6 +34,20 @@ func (m *MockVoteRepository) EXPECT() *MockVoteRepositoryMockRecorder {
 	return m.recorder
 }
 
+// DeleteVote mocks base method.
+func (m *MockVoteRepository) DeleteVote(ctx context.Context, title string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteVote", ctx, title)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteVote indicates an expected call of DeleteVote.
+func (mr *MockVoteRepositoryMockRecorder) DeleteVote(ctx, title interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVote", reflect.TypeOf((*MockVoteRepository)(nil).DeleteVote), ctx, title)
+}
+
 // FindIdByTitle mocks base method.
 func (m *MockVoteRepository) FindIdByTitle(ctx context.Context, title string) (int, error) {
 	m.ctrl.T.Helper()

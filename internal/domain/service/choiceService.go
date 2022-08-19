@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	expire time.Duration = 5
+	expire        time.Duration = 5
+	updateTimeout               = 1 * time.Minute
 )
 
 type CacheService interface {
@@ -42,7 +43,7 @@ func NewChoiceService(cache CacheService, vote VoteService, repo choiceRepositor
 }
 
 func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choiceTitle string, count int) error {
-	c.logger.Debug("try to update choice with vote title = %v, choice title = %v,count = %v", voteTitle, choiceTitle, count)
+	c.logger.Debugf("try to update choice with vote title = %v, choice title = %v,count = %v", voteTitle, choiceTitle, count)
 	lastCount, err := c.cache.Get(voteTitle, choiceTitle)
 	if err != nil {
 		id, err := c.vote.GetByTitle(ctx, voteTitle)
@@ -54,6 +55,7 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 			return errs.ErrChoiceTitleNotExist
 		}
 		updateCount := choice.Count + count
+		c.logger.Debugf("current choice = %v", choice)
 		go func() {
 			err := c.cache.Save(voteTitle, choice.Title, updateCount, time.Minute*expire)
 			if err != nil {
@@ -67,12 +69,14 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 		duration := time.Minute * expire
 		err := c.cache.Save(voteTitle, choiceTitle, newCount, duration)
 		go func() {
-			id, err := c.vote.GetByTitle(ctx, voteTitle)
+			updCtx, cancel := context.WithTimeout(context.Background(), updateTimeout)
+			defer cancel()
+			id, err := c.vote.GetByTitle(updCtx, voteTitle)
 			if err != nil {
 				c.logger.Errorf("vote.GetByTitle error due to %v", err)
 				return
 			}
-			err = c.repo.UpdateByTitleAndId(ctx, newCount, id, choiceTitle)
+			err = c.repo.UpdateByTitleAndId(updCtx, newCount, id, choiceTitle)
 			if err != nil {
 				c.logger.Errorf("repo.UpdateByTitleAndId error due to %v", err)
 			}

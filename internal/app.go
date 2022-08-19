@@ -78,4 +78,6 @@ func (a *app) initializeRouters(choiceService handler.ChoiceService, voteService
 	h := handler.NewVoteHandler(a.logger, voteService, choiceService)
 	a.router.HandleFunc("/api/vote", h.Create).Methods("POST")
 	a.router.HandleFunc("/api/vote", h.GetChoices).Methods("GET")
+	a.router.HandleFunc("/api/choice", h.UpdateChoice).Methods("POST")
+	a.router.HandleFunc("/api/vote/{id:[0-9]+}", h.DeleteVote).Methods("DELETE")
 }
