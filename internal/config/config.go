@@ -13,6 +13,7 @@ import (
 
 type Config struct {
 	Port       string  `yaml : "port"`
+	Host       string  `yaml : "host"`
 	LogLvl     string  `yaml : "loglvl"`
 	PostgreSql Postgre `yaml : "postgresql"`
 	Redis      Redis   `yaml : "redis"`
@@ -70,37 +71,3 @@ func Exists(name string) (bool, error) {
 	}
 	return false, err
 }
-
-// func GetConfig() *Config {
-// 	once.Do(func() {
-// 		path, _ := os.Getwd()
-// 		fmt.Println("path:", path)
-// 		root := filepath.Dir(filepath.Dir(path))
-// 		fmt.Println("dir2:", root)
-// 		instance = &Config{}
-// 		logger := logging.GetLogger("info")
-// 		logger.Info("start config initialisation")
-// 		if err := cleanenv.ReadConfig(root+"\\config\\config.yaml", instance); err != nil {
-// 			help, _ := cleanenv.GetDescription(instance, nil)
-// 			logger.Info(help)
-// 			logger.Fatal(err)
-// 		}
-// 	})
-// 	return instance
-// }
-
-// func GetConfig() *Config {
-// 	once.Do(func() {
-// 		currdir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-// 		fmt.Println(currdir)
-// 		instance = &Config{}
-// 		logger := logging.GetLogger("info")
-// 		logger.Info("start config initialisation")
-// 		if err := cleanenv.ReadConfig(currdir+"/config/config.yaml", instance); err != nil {
-// 			help, _ := cleanenv.GetDescription(instance, nil)
-// 			logger.Info(help)
-// 			logger.Fatal(err)
-// 		}
-// 	})
-// 	return instance
-// }

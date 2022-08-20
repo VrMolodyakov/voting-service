@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	expire        time.Duration = 5
+	expire        time.Duration = 5 * time.Minute
 	updateTimeout               = 1 * time.Minute
 )
 
@@ -46,6 +46,7 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 	c.logger.Debugf("try to update choice with vote title = %v, choice title = %v,count = %v", voteTitle, choiceTitle, count)
 	lastCount, err := c.cache.Get(voteTitle, choiceTitle)
 	if err != nil {
+		c.logger.Debugf("vote title = %v and choice title = %v not found in cache", voteTitle, choiceTitle)
 		id, err := c.vote.GetByTitle(ctx, voteTitle)
 		if err != nil {
 			return errs.ErrTitleNotExist
@@ -57,7 +58,7 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 		updateCount := choice.Count + count
 		c.logger.Debugf("current choice = %v", choice)
 		go func() {
-			err := c.cache.Save(voteTitle, choice.Title, updateCount, time.Minute*expire)
+			err := c.cache.Save(voteTitle, choice.Title, updateCount, expire)
 			if err != nil {
 				c.logger.Errorf("cache.Save() error due to %v", err)
 			}
@@ -66,8 +67,7 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 
 	} else {
 		newCount := lastCount + count
-		duration := time.Minute * expire
-		err := c.cache.Save(voteTitle, choiceTitle, newCount, duration)
+		err := c.cache.Save(voteTitle, choiceTitle, newCount, expire)
 		go func() {
 			updCtx, cancel := context.WithTimeout(context.Background(), updateTimeout)
 			defer cancel()
@@ -111,46 +111,3 @@ func (c *choiceService) CreateChoice(ctx context.Context, choice entity.Choice) 
 	}
 	return c.repo.Insert(ctx, choice)
 }
-
-/*
-	request -> (
-		vot title
-		choice title
-
-	)->update Choice (
-		voteTitle string
-		choiceTitle string
-		count int
-	)->if in cache (
-		update cache
-		update psql
-		return nil (200 response)
-	)->not in cache(
-		check title is present
-		choice is present
-		update count
-		save to cache
-		update psql
-		return nil (200 response)
-	)
-
-
-
-
-
-
-
-
-
-
-
-for i := 0; i < len(choices); i++ {
-			if choices[i].Title == choiceTitle {
-				choices[i].Count += count
-
-				return c.repo.UpdateByTitleAndId(ctx, choices[i].Count, id, choiceTitle)
-			}
-		}
-
-
-*/
