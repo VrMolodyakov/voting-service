@@ -20,7 +20,6 @@ func NewVoteStorage(pool *pgxpool.Pool, logger *logging.Logger) *voteRepository 
 	return &voteRepository{client: pool, logger: logger}
 }
 
-//`INSERT INTO vote(vote_title) VALUES($1) RETURNING vote_id`
 func (v *voteRepository) Insert(ctx context.Context, vote string) (int, error) {
 	sql := `INSERT INTO vote(vote_title)
 			SELECT $1

@@ -12,8 +12,6 @@ import (
 )
 
 func TestSave(t *testing.T) {
-	//var mockedRedis *mocks.MockRedisCache
-
 	ctrl := gomock.NewController(t)
 	mockedRedis := mocks.NewMockRedisCache(ctrl)
 	defer ctrl.Finish()
