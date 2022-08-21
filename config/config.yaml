@@ -4,6 +4,7 @@ postgresql:
   host: postgres
   port: 5432
   dbname: devdb
+  poolsize: 100
 
 redis:
   host: redis

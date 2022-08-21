@@ -20,18 +20,19 @@ type Config struct {
 }
 
 type Redis struct {
-	Host     string `json:"host"`
-	Port     string `json:"port"`
-	Password string `json:"password"`
-	DbNumber int    `json:"dbnumber"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Password string `yaml:"password"`
+	DbNumber int    `yaml:"dbnumber"`
 }
 
 type Postgre struct {
-	Host     string `json:"host"`
-	Port     string `json:"port"`
-	Dbname   string `json:"dbname"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Dbname   string `yaml:"dbname"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	PoolSize string `yaml:"poolsize"`
 }
 
 var instance *Config

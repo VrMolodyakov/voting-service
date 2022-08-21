@@ -50,7 +50,8 @@ func (a *app) startHttp() {
 		a.cfg.PostgreSql.Password,
 		a.cfg.PostgreSql.Host,
 		a.cfg.PostgreSql.Port,
-		a.cfg.PostgreSql.Dbname)
+		a.cfg.PostgreSql.Dbname,
+		a.cfg.PostgreSql.PoolSize)
 
 	psqlClient, err := postgresql.NewClient(context.Background(), attemp, delay, pgCfg)
 	a.checkErr(err)
@@ -92,7 +93,7 @@ func (a *app) startHttp() {
 func (a *app) initializeRouters(choiceService handler.ChoiceService, voteService handler.VoteService) {
 	h := handler.NewVoteHandler(a.logger, voteService, choiceService)
 	a.router.HandleFunc("/api/vote", h.Create).Methods("POST")
-	a.router.HandleFunc("/api/vote", h.GetChoices).Methods("GET")
+	a.router.HandleFunc("/api/result", h.GetChoices).Methods("POST")
 	a.router.HandleFunc("/api/choice", h.UpdateChoice).Methods("POST")
 	a.router.HandleFunc("/api/vote/{id:[0-9]+}", h.DeleteVote).Methods("DELETE")
 }
