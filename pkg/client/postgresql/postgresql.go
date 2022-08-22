@@ -29,7 +29,6 @@ func NewPgConfig(username string, password string, host string, port string, dat
 	}
 }
 
-//pool_max_conns=10
 func NewClient(ctx context.Context, maxAttempts int, delay time.Duration, cfg *pgConfig) (pool *pgxpool.Pool, err error) {
 	connectUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?pool_max_conns=%s", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database, cfg.PoolSize)
 	err = DoWithAttempts(func() error {

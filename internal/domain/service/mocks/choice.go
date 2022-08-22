@@ -118,31 +118,31 @@ func (mr *MockVoteServiceMockRecorder) GetByTitle(ctx, title interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTitle", reflect.TypeOf((*MockVoteService)(nil).GetByTitle), ctx, title)
 }
 
-// MockChoiceRepository is a mock of ChoiceRepository interface.
-type MockChoiceRepository struct {
+// MockСhoiceRepository is a mock of СhoiceRepository interface.
+type MockСhoiceRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockChoiceRepositoryMockRecorder
+	recorder *MockСhoiceRepositoryMockRecorder
 }
 
-// MockChoiceRepositoryMockRecorder is the mock recorder for MockChoiceRepository.
-type MockChoiceRepositoryMockRecorder struct {
-	mock *MockChoiceRepository
+// MockСhoiceRepositoryMockRecorder is the mock recorder for MockСhoiceRepository.
+type MockСhoiceRepositoryMockRecorder struct {
+	mock *MockСhoiceRepository
 }
 
-// NewMockChoiceRepository creates a new mock instance.
-func NewMockChoiceRepository(ctrl *gomock.Controller) *MockChoiceRepository {
-	mock := &MockChoiceRepository{ctrl: ctrl}
-	mock.recorder = &MockChoiceRepositoryMockRecorder{mock}
+// NewMockСhoiceRepository creates a new mock instance.
+func NewMockСhoiceRepository(ctrl *gomock.Controller) *MockСhoiceRepository {
+	mock := &MockСhoiceRepository{ctrl: ctrl}
+	mock.recorder = &MockСhoiceRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockChoiceRepository) EXPECT() *MockChoiceRepositoryMockRecorder {
+func (m *MockСhoiceRepository) EXPECT() *MockСhoiceRepositoryMockRecorder {
 	return m.recorder
 }
 
 // FindChoicesByVoteId mocks base method.
-func (m *MockChoiceRepository) FindChoicesByVoteId(ctx context.Context, id int) ([]entity.Choice, error) {
+func (m *MockСhoiceRepository) FindChoicesByVoteId(ctx context.Context, id int) ([]entity.Choice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindChoicesByVoteId", ctx, id)
 	ret0, _ := ret[0].([]entity.Choice)
@@ -151,13 +151,13 @@ func (m *MockChoiceRepository) FindChoicesByVoteId(ctx context.Context, id int) 
 }
 
 // FindChoicesByVoteId indicates an expected call of FindChoicesByVoteId.
-func (mr *MockChoiceRepositoryMockRecorder) FindChoicesByVoteId(ctx, id interface{}) *gomock.Call {
+func (mr *MockСhoiceRepositoryMockRecorder) FindChoicesByVoteId(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoicesByVoteId", reflect.TypeOf((*MockChoiceRepository)(nil).FindChoicesByVoteId), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoicesByVoteId", reflect.TypeOf((*MockСhoiceRepository)(nil).FindChoicesByVoteId), ctx, id)
 }
 
 // FindChoicesByVoteIdAndTitle mocks base method.
-func (m *MockChoiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, id int, choiceTitle string) (entity.Choice, error) {
+func (m *MockСhoiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, id int, choiceTitle string) (entity.Choice, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindChoicesByVoteIdAndTitle", ctx, id, choiceTitle)
 	ret0, _ := ret[0].(entity.Choice)
@@ -166,13 +166,13 @@ func (m *MockChoiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, 
 }
 
 // FindChoicesByVoteIdAndTitle indicates an expected call of FindChoicesByVoteIdAndTitle.
-func (mr *MockChoiceRepositoryMockRecorder) FindChoicesByVoteIdAndTitle(ctx, id, choiceTitle interface{}) *gomock.Call {
+func (mr *MockСhoiceRepositoryMockRecorder) FindChoicesByVoteIdAndTitle(ctx, id, choiceTitle interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoicesByVoteIdAndTitle", reflect.TypeOf((*MockChoiceRepository)(nil).FindChoicesByVoteIdAndTitle), ctx, id, choiceTitle)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoicesByVoteIdAndTitle", reflect.TypeOf((*MockСhoiceRepository)(nil).FindChoicesByVoteIdAndTitle), ctx, id, choiceTitle)
 }
 
 // Insert mocks base method.
-func (m *MockChoiceRepository) Insert(ctx context.Context, choice entity.Choice) (string, error) {
+func (m *MockСhoiceRepository) Insert(ctx context.Context, choice entity.Choice) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, choice)
 	ret0, _ := ret[0].(string)
@@ -181,21 +181,22 @@ func (m *MockChoiceRepository) Insert(ctx context.Context, choice entity.Choice)
 }
 
 // Insert indicates an expected call of Insert.
-func (mr *MockChoiceRepositoryMockRecorder) Insert(ctx, choice interface{}) *gomock.Call {
+func (mr *MockСhoiceRepositoryMockRecorder) Insert(ctx, choice interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockChoiceRepository)(nil).Insert), ctx, choice)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockСhoiceRepository)(nil).Insert), ctx, choice)
 }
 
 // UpdateByTitleAndId mocks base method.
-func (m *MockChoiceRepository) UpdateByTitleAndId(ctx context.Context, count, voteId int, title string) error {
+func (m *MockСhoiceRepository) UpdateByTitleAndId(ctx context.Context, count, voteId int, title string) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateByTitleAndId", ctx, count, voteId, title)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpdateByTitleAndId indicates an expected call of UpdateByTitleAndId.
-func (mr *MockChoiceRepositoryMockRecorder) UpdateByTitleAndId(ctx, count, voteId, title interface{}) *gomock.Call {
+func (mr *MockСhoiceRepositoryMockRecorder) UpdateByTitleAndId(ctx, count, voteId, title interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByTitleAndId", reflect.TypeOf((*MockChoiceRepository)(nil).UpdateByTitleAndId), ctx, count, voteId, title)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByTitleAndId", reflect.TypeOf((*MockСhoiceRepository)(nil).UpdateByTitleAndId), ctx, count, voteId, title)
 }

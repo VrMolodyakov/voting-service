@@ -6,6 +6,7 @@ import (
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
 	psql "github.com/VrMolodyakov/vote-service/pkg/client/postgresql"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -66,15 +67,33 @@ func (c *choiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, id i
 	return choice, nil
 }
 
-func (c *choiceRepository) UpdateByTitleAndId(ctx context.Context, count int, voteId int, title string) error {
+func (c *choiceRepository) UpdateByTitleAndId(ctx context.Context, count int, voteId int, title string) (int, error) {
 	sql := `UPDATE choice
-			SET count = $1
-			WHERE choice_title = $2 AND vote_id = $3`
-	_, err := c.client.Exec(ctx, sql, count, title, voteId)
+			SET count = count + $1
+			WHERE choice_title = $2 AND vote_id = $3  RETURNING count`
+	tx, err := c.client.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
+	if err != nil {
+		c.logger.Errorf("cannot begin Tx due to %v", err)
+		return -1, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+	var updCount int
+	err = tx.QueryRow(ctx, sql, count, title, voteId).Scan(&updCount)
 	if err != nil {
 		err = psql.ErrExecuteQuery(err)
 		c.logger.Error(err)
-		return err
+		return -1, err
 	}
-	return nil
+	if err := tx.Commit(ctx); err != nil {
+		c.logger.Errorf("cannot commit Tx due to %v", err)
+		return -1, err
+	}
+
+	return updCount, nil
 }

@@ -23,7 +23,7 @@ import (
 
 const (
 	attemp       int = 5
-	delay            = 5 * time.Second
+	delay            = 10 * time.Second
 	writeTimeout     = 15 * time.Second
 	readTimeout      = 15 * time.Second
 )

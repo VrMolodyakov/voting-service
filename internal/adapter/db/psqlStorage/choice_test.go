@@ -229,7 +229,7 @@ func TestUpdateById(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			err := choiceRepo.UpdateByTitleAndId(context.Background(), test.input.count, test.input.voteId, test.input.title)
+			_, err := choiceRepo.UpdateByTitleAndId(context.Background(), test.input.count, test.input.voteId, test.input.title)
 			if !test.isError {
 				assert.Equal(t, err, nil)
 			} else {

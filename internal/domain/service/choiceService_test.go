@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
@@ -14,7 +15,7 @@ import (
 
 func TestCreateChoice(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	choiceRepo := mocks.NewMockChoiceRepository(ctrl)
+	choiceRepo := mocks.NewMockСhoiceRepository(ctrl)
 	voteRepo := mocks.NewMockVoteRepository(ctrl)
 	mockedRedis := mocks.NewMockRedisCache(ctrl)
 	type mockCall func() *choiceService
@@ -82,7 +83,7 @@ func TestCreateChoice(t *testing.T) {
 
 func TestGetVoteResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	choiceRepo := mocks.NewMockChoiceRepository(ctrl)
+	choiceRepo := mocks.NewMockСhoiceRepository(ctrl)
 	voteService := mocks.NewMockVoteService(ctrl)
 	mockedRedis := mocks.NewMockRedisCache(ctrl)
 	type mockCall func() *choiceService
@@ -151,7 +152,7 @@ func TestGetVoteResult(t *testing.T) {
 
 func TestUpdateChoice(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	choiceRepo := mocks.NewMockChoiceRepository(ctrl)
+	choiceRepo := mocks.NewMockСhoiceRepository(ctrl)
 	voteService := mocks.NewMockVoteService(ctrl)
 	cacheService := mocks.NewMockCacheService(ctrl)
 	type args struct {
@@ -159,50 +160,102 @@ func TestUpdateChoice(t *testing.T) {
 		choiceTitle string
 		count       int
 	}
-	type mockCall func() *choiceService
+	type mockCall func(wg *sync.WaitGroup) *choiceService
 	testCases := []struct {
 		title   string
 		input   args
 		mock    mockCall
 		want    []entity.Choice
 		isError bool
+		wait    bool
 	}{
 		{
 			title: "success UpdateChoice() method vote result",
 			input: args{voteTitle: "vote title", choiceTitle: "choice title", count: 1},
-			want:  []entity.Choice{{Title: "title1", VoteId: 1, Count: 1}, {Title: "title2", VoteId: 1, Count: 1}},
-			mock: func() *choiceService {
+			mock: func(wg *sync.WaitGroup) *choiceService {
 				logger := logging.GetLogger("debug")
 				cacheService.EXPECT().Get(gomock.Any(), gomock.Any()).Return(-1, errors.New("empty cache"))
-				cacheService.EXPECT().Save(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				cacheService.EXPECT().Save(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Do(
+					func(voteTitle interface{}, choiceTitle interface{}, count interface{}, expireAt interface{}) {
+						wg.Done()
+					})
 				voteService.EXPECT().GetByTitle(gomock.Any(), gomock.Any()).Return(1, nil)
-				choice := entity.Choice{Title: "title1", VoteId: 1, Count: 1}
-				choiceRepo.EXPECT().FindChoicesByVoteIdAndTitle(gomock.Any(), gomock.Any(), gomock.Any()).Return(choice, nil)
-				choiceRepo.EXPECT().UpdateByTitleAndId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				choiceRepo.EXPECT().UpdateByTitleAndId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(1, nil)
 				return NewChoiceService(cacheService, voteService, choiceRepo, logger)
 			},
 			isError: false,
+			wait:    true,
 		},
 		{
-			title: "success UpdateChoice() method vote result",
+			title: "UpdateChoice() find choice in cache and succes method execute",
 			input: args{voteTitle: "vote title", choiceTitle: "choice title", count: 1},
 			want:  []entity.Choice{{Title: "title1", VoteId: 1, Count: 1}, {Title: "title2", VoteId: 1, Count: 1}},
-			mock: func() *choiceService {
+			mock: func(wg *sync.WaitGroup) *choiceService {
 				logger := logging.GetLogger("debug")
 				cacheService.EXPECT().Get(gomock.Any(), gomock.Any()).Return(1, nil)
 				cacheService.EXPECT().Save(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				voteService.EXPECT().GetByTitle(gomock.Any(), gomock.Any()).Return(1, nil)
-				choiceRepo.EXPECT().UpdateByTitleAndId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				choiceRepo.EXPECT().UpdateByTitleAndId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Do(
+					func(ctx interface{}, count interface{}, voteId interface{}, title interface{}) {
+						wg.Done()
+					})
 				return NewChoiceService(cacheService, voteService, choiceRepo, logger)
 			},
 			isError: false,
+			wait:    true,
+		},
+		{
+			title: " vote title not found and UpdateChoice() should return error",
+			input: args{voteTitle: "vote title", choiceTitle: "choice title", count: 1},
+			want:  []entity.Choice{{Title: "title1", VoteId: 1, Count: 1}, {Title: "title2", VoteId: 1, Count: 1}},
+			mock: func(wg *sync.WaitGroup) *choiceService {
+				logger := logging.GetLogger("debug")
+				cacheService.EXPECT().Get(gomock.Any(), gomock.Any()).Return(-1, errors.New("empty cache"))
+				voteService.EXPECT().GetByTitle(gomock.Any(), gomock.Any()).Return(-1, errors.New("title not found"))
+				return NewChoiceService(cacheService, voteService, choiceRepo, logger)
+			},
+			isError: true,
+			wait:    false,
+		},
+		{
+			title: " cannot execute UpdateByTitleAndId() and UpdateChoice() should return error",
+			input: args{voteTitle: "vote title", choiceTitle: "choice title", count: 1},
+			want:  []entity.Choice{{Title: "title1", VoteId: 1, Count: 1}, {Title: "title2", VoteId: 1, Count: 1}},
+			mock: func(wg *sync.WaitGroup) *choiceService {
+				logger := logging.GetLogger("debug")
+				cacheService.EXPECT().Get(gomock.Any(), gomock.Any()).Return(-1, errors.New("empty cache"))
+				voteService.EXPECT().GetByTitle(gomock.Any(), gomock.Any()).Return(1, nil)
+				choiceRepo.EXPECT().UpdateByTitleAndId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(-1, errors.New("internal db error"))
+				return NewChoiceService(cacheService, voteService, choiceRepo, logger)
+			},
+			isError: true,
+			wait:    false,
+		},
+		{
+			title: " cannot execute UpdateByTitleAndId() and UpdateChoice() should return error",
+			input: args{voteTitle: "vote title", choiceTitle: "choice title", count: 1},
+			want:  []entity.Choice{{Title: "title1", VoteId: 1, Count: 1}, {Title: "title2", VoteId: 1, Count: 1}},
+			mock: func(wg *sync.WaitGroup) *choiceService {
+				logger := logging.GetLogger("debug")
+				cacheService.EXPECT().Get(gomock.Any(), gomock.Any()).Return(-1, errors.New("empty cache"))
+				voteService.EXPECT().GetByTitle(gomock.Any(), gomock.Any()).Return(1, nil)
+				choiceRepo.EXPECT().UpdateByTitleAndId(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(-1, errors.New("internal db error"))
+				return NewChoiceService(cacheService, voteService, choiceRepo, logger)
+			},
+			isError: true,
+			wait:    false,
 		},
 	}
 	for _, test := range testCases {
 		t.Run(test.title, func(t *testing.T) {
-			choiceService := test.mock()
+			var wg sync.WaitGroup
+			if test.wait {
+				wg.Add(1)
+			}
+			choiceService := test.mock(&wg)
 			ctx := context.Background()
 			err := choiceService.UpdateChoice(ctx, test.input.voteTitle, test.input.choiceTitle, test.input.count)
+			wg.Wait()
 			if !test.isError {
 				assert.NoError(t, err)
 			} else {
