@@ -172,7 +172,7 @@ func TestFindIdByVoteId(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			got, err := choiceRepo.FindChoicesByVoteId(context.Background(), test.input)
+			got, err := choiceRepo.FindChoices(context.Background(), test.input)
 			if !test.isError {
 				for i, actual := range got {
 					assert.Equal(t, test.want[i].Title, actual.Title)
@@ -229,7 +229,7 @@ func TestUpdateById(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			_, err := choiceRepo.UpdateByTitleAndId(context.Background(), test.input.count, test.input.voteId, test.input.title)
+			_, err := choiceRepo.IncrementUpdate(context.Background(), test.input.count, test.input.voteId, test.input.title)
 			if !test.isError {
 				assert.Equal(t, err, nil)
 			} else {
@@ -290,7 +290,7 @@ func TestFindChoicesByVoteIdAndTitle(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			got, err := choiceRepo.FindChoicesByVoteIdAndTitle(context.Background(), test.input.voteId, test.input.title)
+			got, err := choiceRepo.FindChoice(context.Background(), test.input.voteId, test.input.title)
 			if test.isError {
 				assert.Error(t, err)
 			} else {

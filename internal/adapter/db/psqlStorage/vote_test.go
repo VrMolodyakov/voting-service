@@ -68,7 +68,7 @@ func TestInsertVote(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			got, err := voteRepo.Insert(context.Background(), test.input)
+			got, err := voteRepo.InsertVote(context.Background(), test.input)
 			if test.isError {
 				assert.Error(t, err)
 			} else {
@@ -123,7 +123,7 @@ func TestFindByTitle(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			got, err := voteRepo.FindIdByTitle(context.Background(), test.input)
+			got, err := voteRepo.FindVote(context.Background(), test.input)
 			if test.isError {
 				assert.Error(t, err)
 			} else {

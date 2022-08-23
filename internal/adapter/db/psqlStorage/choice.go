@@ -31,7 +31,7 @@ func (c *choiceRepository) Insert(ctx context.Context, choice entity.Choice) (st
 	return title, nil
 }
 
-func (c *choiceRepository) FindChoicesByVoteId(ctx context.Context, id int) ([]entity.Choice, error) {
+func (c *choiceRepository) FindChoices(ctx context.Context, id int) ([]entity.Choice, error) {
 	sql := `SELECT * FROM choice WHERE vote_id = $1`
 	rows, err := c.client.Query(ctx, sql, id)
 	if err != nil {
@@ -52,7 +52,7 @@ func (c *choiceRepository) FindChoicesByVoteId(ctx context.Context, id int) ([]e
 	return choices, nil
 }
 
-func (c *choiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, id int, choiceTitle string) (entity.Choice, error) {
+func (c *choiceRepository) FindChoice(ctx context.Context, id int, choiceTitle string) (entity.Choice, error) {
 	sql := `SELECT choice_title,vote_id,count
 			FROM choice 
 			WHERE vote_id = $1 AND choice_title = $2`
@@ -67,10 +67,21 @@ func (c *choiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, id i
 	return choice, nil
 }
 
-func (c *choiceRepository) UpdateByTitleAndId(ctx context.Context, count int, voteId int, title string) (int, error) {
+func (c *choiceRepository) IncrementUpdate(ctx context.Context, count int, voteId int, title string) (int, error) {
 	sql := `UPDATE choice
 			SET count = count + $1
 			WHERE choice_title = $2 AND vote_id = $3  RETURNING count`
+	return c.update(ctx, sql, count, voteId, title)
+}
+
+func (c *choiceRepository) SetUpdate(ctx context.Context, count int, voteId int, title string) (int, error) {
+	sql := `UPDATE choice
+			SET count = $1
+			WHERE choice_title = $2 AND vote_id = $3  RETURNING count`
+	return c.update(ctx, sql, count, voteId, title)
+}
+
+func (c *choiceRepository) update(ctx context.Context, sql string, count int, voteId int, title string) (int, error) {
 	tx, err := c.client.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
 		c.logger.Errorf("cannot begin Tx due to %v", err)

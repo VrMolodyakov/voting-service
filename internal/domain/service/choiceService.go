@@ -25,10 +25,11 @@ type VoteService interface {
 }
 
 type СhoiceRepository interface {
-	UpdateByTitleAndId(ctx context.Context, count int, voteId int, title string) (int, error)
-	FindChoicesByVoteIdAndTitle(ctx context.Context, id int, choiceTitle string) (entity.Choice, error)
-	FindChoicesByVoteId(ctx context.Context, id int) ([]entity.Choice, error)
 	Insert(ctx context.Context, choice entity.Choice) (string, error)
+	FindChoices(ctx context.Context, id int) ([]entity.Choice, error)
+	FindChoice(ctx context.Context, id int, choiceTitle string) (entity.Choice, error)
+	IncrementUpdate(ctx context.Context, count int, voteId int, title string) (int, error)
+	SetUpdate(ctx context.Context, count int, voteId int, title string) (int, error)
 }
 
 type choiceService struct {
@@ -46,7 +47,7 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 	c.logger.Debugf("try to update choice with vote title = %v, choice title = %v,count = %v", voteTitle, choiceTitle, count)
 	lastCount, err := c.cache.Get(voteTitle, choiceTitle)
 	if err != nil {
-		updCount, err := c.update(ctx, voteTitle, choiceTitle, count)
+		updCount, err := c.incrUpdate(ctx, voteTitle, choiceTitle, count)
 		if err != nil {
 			c.logger.Errorf("cannot update for vote title = %v , choice title = %v", voteTitle, choiceTitle)
 			return err
@@ -63,29 +64,30 @@ func (c *choiceService) UpdateChoice(ctx context.Context, voteTitle string, choi
 		newCount := lastCount + count
 		c.logger.Debugf("last choice count = %v", lastCount)
 		err := c.cache.Save(voteTitle, choiceTitle, newCount, expire)
+		if err != nil {
+			_, err := c.incrUpdate(ctx, voteTitle, choiceTitle, count)
+			if err != nil {
+				c.logger.Errorf("couldn't update count due to %v", err)
+				return err
+			}
+			return nil
+		}
 		go func() {
 			updCtx, cancel := context.WithTimeout(context.Background(), updateTimeout)
 			defer cancel()
-			_, err := c.update(updCtx, voteTitle, choiceTitle, newCount)
-			if err != nil {
-				c.logger.Errorf("cannot update due to %v", err)
-			}
+			_, err := c.incrUpdate(updCtx, voteTitle, choiceTitle, count)
+			c.logger.Errorf("couldn't update count due to %v", err)
 		}()
-		if err != nil {
-			c.logger.Errorf("cache.Save() error due to %v", err)
-			return err
-		}
 		return nil
 	}
 }
 
-func (c *choiceService) update(ctx context.Context, voteTitle string, choiceTitle string, count int) (int, error) {
-	c.logger.Debugf("vote title = %v and choice title = %v not found in cache", voteTitle, choiceTitle)
+func (c *choiceService) incrUpdate(ctx context.Context, voteTitle string, choiceTitle string, count int) (int, error) {
 	id, err := c.vote.GetByTitle(ctx, voteTitle)
 	if err != nil {
 		return -1, errs.ErrTitleNotExist
 	}
-	return c.repo.UpdateByTitleAndId(ctx, count, id, choiceTitle)
+	return c.repo.IncrementUpdate(ctx, count, id, choiceTitle)
 }
 
 func (c *choiceService) GetVoteResult(ctx context.Context, voteTitle string) ([]entity.Choice, error) {
@@ -95,7 +97,7 @@ func (c *choiceService) GetVoteResult(ctx context.Context, voteTitle string) ([]
 		c.logger.Errorf("GetVoteResult() error due to %v", err)
 		return nil, errs.ErrTitleNotExist
 	}
-	choices, err := c.repo.FindChoicesByVoteId(ctx, id)
+	choices, err := c.repo.FindChoices(ctx, id)
 	if err != nil {
 		c.logger.Errorf("GetVoteResult() error due to %v", err)
 		return nil, err

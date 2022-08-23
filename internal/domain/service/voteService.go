@@ -9,9 +9,9 @@ import (
 )
 
 type VoteRepository interface {
-	Insert(ctx context.Context, vote string) (int, error)
-	FindIdByTitle(ctx context.Context, title string) (int, error)
 	DeleteVote(ctx context.Context, id string) error
+	FindVote(ctx context.Context, title string) (int, error)
+	InsertVote(ctx context.Context, vote string) (int, error)
 }
 
 type voteService struct {
@@ -29,7 +29,7 @@ func (v *voteService) Create(ctx context.Context, title string) (int, error) {
 		return -1, errs.ErrEmptyVoteTitle
 	}
 
-	vote, err := v.repo.Insert(ctx, title)
+	vote, err := v.repo.InsertVote(ctx, title)
 	if err != nil {
 		if errors.Is(err, errs.ErrTitleAlreadyExist) {
 			v.logger.Errorf("create error due to %v", err)
@@ -44,7 +44,7 @@ func (v *voteService) GetByTitle(ctx context.Context, title string) (int, error)
 	if title == "" {
 		return -1, errs.ErrEmptyVoteTitle
 	}
-	return v.repo.FindIdByTitle(ctx, title)
+	return v.repo.FindVote(ctx, title)
 }
 
 func (v *voteService) DeleteVoteById(ctx context.Context, id string) error {
