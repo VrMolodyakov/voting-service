@@ -44,7 +44,7 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	var respose VoteResponse
 	respose.VoteTitle = vote.VoteTitle
 	for _, choice := range choices {
-		choice, err := h.choiceService.CreateChoice(ctx, choice)
+		choice, err := h.choiceService.Create(ctx, choice)
 		if err != nil {
 			errorResponse(w, err)
 			return
@@ -72,7 +72,7 @@ func (h *handler) GetChoices(w http.ResponseWriter, r *http.Request) {
 	}
 	h.logger.Debugf("try to get choices for %v", vote)
 	ctx := r.Context()
-	choices, err := h.choiceService.GetVoteResult(ctx, vote.VoteTitle)
+	choices, err := h.choiceService.Get(ctx, vote.VoteTitle)
 	if err != nil {
 		errorResponse(w, err)
 		return
@@ -100,7 +100,7 @@ func (h *handler) UpdateChoice(w http.ResponseWriter, r *http.Request) {
 	}
 	h.logger.Debugf("try tot update choice %v", updateReq)
 	ctx := r.Context()
-	err = h.choiceService.UpdateChoice(ctx, updateReq.VoteTitle, updateReq.ChoiceTitle, 1)
+	err = h.choiceService.Update(ctx, updateReq.VoteTitle, updateReq.ChoiceTitle, 1)
 	if err != nil {
 		errorResponse(w, err)
 		return
@@ -112,7 +112,7 @@ func (h *handler) DeleteVote(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	h.logger.Debugf("try tot delete vote %v", id)
 	ctx := r.Context()
-	err := h.voteService.DeleteVoteById(ctx, id)
+	err := h.voteService.Delete(ctx, id)
 	if err != nil {
 		errorResponse(w, err)
 		return

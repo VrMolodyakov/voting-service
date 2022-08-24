@@ -8,12 +8,12 @@ import (
 
 type VoteService interface {
 	Create(ctx context.Context, vote string) (int, error)
-	GetByTitle(ctx context.Context, title string) (int, error)
-	DeleteVoteById(ctx context.Context, id string) error
+	Get(ctx context.Context, title string) (int, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type ChoiceService interface {
-	CreateChoice(ctx context.Context, choice entity.Choice) (string, error)
-	GetVoteResult(ctx context.Context, voteTitle string) ([]entity.Choice, error)
-	UpdateChoice(ctx context.Context, voteTitle string, choiceTitle string, count int) error
+	Create(ctx context.Context, choice entity.Choice) (string, error)
+	Get(ctx context.Context, voteTitle string) ([]entity.Choice, error)
+	Update(ctx context.Context, voteTitle string, choiceTitle string, count int) error
 }

@@ -2,16 +2,15 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/VrMolodyakov/vote-service/internal/errs"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 )
 
 type VoteRepository interface {
-	DeleteVote(ctx context.Context, id string) error
-	FindVote(ctx context.Context, title string) (int, error)
-	InsertVote(ctx context.Context, vote string) (int, error)
+	Delete(ctx context.Context, id string) error
+	Find(ctx context.Context, title string) (int, error)
+	Insert(ctx context.Context, vote string) (int, error)
 }
 
 type voteService struct {
@@ -29,28 +28,26 @@ func (v *voteService) Create(ctx context.Context, title string) (int, error) {
 		return -1, errs.ErrEmptyVoteTitle
 	}
 
-	vote, err := v.repo.InsertVote(ctx, title)
+	vote, err := v.repo.Insert(ctx, title)
 	if err != nil {
-		if errors.Is(err, errs.ErrTitleAlreadyExist) {
-			v.logger.Errorf("create error due to %v", err)
-			return -1, err
-		}
+		v.logger.Errorf("couldn't create for title = %v ", title)
+		return -1, err
 	}
 	return vote, nil
 }
 
-func (v *voteService) GetByTitle(ctx context.Context, title string) (int, error) {
+func (v *voteService) Get(ctx context.Context, title string) (int, error) {
 	v.logger.Debugf("try to get vote with title %v", title)
 	if title == "" {
 		return -1, errs.ErrEmptyVoteTitle
 	}
-	return v.repo.FindVote(ctx, title)
+	return v.repo.Find(ctx, title)
 }
 
-func (v *voteService) DeleteVoteById(ctx context.Context, id string) error {
+func (v *voteService) Delete(ctx context.Context, id string) error {
 	v.logger.Debugf("try to get vote with title %v", id)
 	if id == "" {
 		return errs.ErrEmptyVoteTitle
 	}
-	return v.repo.DeleteVote(ctx, id)
+	return v.repo.Delete(ctx, id)
 }

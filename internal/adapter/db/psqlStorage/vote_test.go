@@ -19,7 +19,7 @@ type voteMockRow struct {
 }
 
 func (this voteMockRow) Scan(dest ...interface{}) error {
-	if this.Id == 0 {
+	if this.Err != nil {
 		return pgx.ErrNoRows
 	}
 	id := dest[0].(*int)
@@ -44,7 +44,7 @@ func TestInsertVote(t *testing.T) {
 		isError bool
 	}{
 		{
-			title: "should insert successfully",
+			title: "Insert() should insert successfully",
 			input: "test title",
 			mock: func() {
 				row := voteMockRow{1, nil}
@@ -54,7 +54,7 @@ func TestInsertVote(t *testing.T) {
 			isError: false,
 		},
 		{
-			title: "",
+			title: "Insert() should return error due to psql error",
 			input: "",
 			mock: func() {
 				row := voteMockRow{0, errors.New("psql error")}
@@ -68,7 +68,7 @@ func TestInsertVote(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			got, err := voteRepo.InsertVote(context.Background(), test.input)
+			got, err := voteRepo.Insert(context.Background(), test.input)
 			if test.isError {
 				assert.Error(t, err)
 			} else {
@@ -99,7 +99,7 @@ func TestFindByTitle(t *testing.T) {
 		isError bool
 	}{
 		{
-			title: "should insert successfully",
+			title: "FindVote() should find successfully",
 			input: "title to find",
 			mock: func() {
 				row := voteMockRow{1, nil}
@@ -109,7 +109,7 @@ func TestFindByTitle(t *testing.T) {
 			isError: false,
 		},
 		{
-			title: "psql not found and should return error ",
+			title: "FindVote() shouldn't find due to psql error and return error ",
 			input: "",
 			mock: func() {
 				row := voteMockRow{0, errors.New("psql error")}
@@ -123,7 +123,7 @@ func TestFindByTitle(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			got, err := voteRepo.FindVote(context.Background(), test.input)
+			got, err := voteRepo.Find(context.Background(), test.input)
 			if test.isError {
 				assert.Error(t, err)
 			} else {
@@ -149,7 +149,7 @@ func TestDelete(t *testing.T) {
 		isError bool
 	}{
 		{
-			title: "should update successfully",
+			title: "DeleteVote() should delete successfully",
 			input: "title to delete",
 			mock: func() {
 				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil)
@@ -157,7 +157,7 @@ func TestDelete(t *testing.T) {
 			isError: false,
 		},
 		{
-			title: "update should return error",
+			title: "DeleteVote() shouldn't find due to psql error and return error ",
 			input: "title to delete",
 			mock: func() {
 				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("internal error"))
@@ -169,7 +169,7 @@ func TestDelete(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			err := voteRepo.DeleteVote(context.Background(), test.input)
+			err := voteRepo.Delete(context.Background(), test.input)
 			if !test.isError {
 				assert.Equal(t, err, nil)
 			} else {

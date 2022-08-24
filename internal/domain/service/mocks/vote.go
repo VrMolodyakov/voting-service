@@ -34,33 +34,33 @@ func (m *MockVoteRepository) EXPECT() *MockVoteRepositoryMockRecorder {
 	return m.recorder
 }
 
-// DeleteVote mocks base method.
-func (m *MockVoteRepository) DeleteVote(ctx context.Context, title string) error {
+// Delete mocks base method.
+func (m *MockVoteRepository) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteVote", ctx, title)
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteVote indicates an expected call of DeleteVote.
-func (mr *MockVoteRepositoryMockRecorder) DeleteVote(ctx, title interface{}) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockVoteRepositoryMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVote", reflect.TypeOf((*MockVoteRepository)(nil).DeleteVote), ctx, title)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockVoteRepository)(nil).Delete), ctx, id)
 }
 
-// FindIdByTitle mocks base method.
-func (m *MockVoteRepository) FindIdByTitle(ctx context.Context, title string) (int, error) {
+// Find mocks base method.
+func (m *MockVoteRepository) Find(ctx context.Context, title string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindIdByTitle", ctx, title)
+	ret := m.ctrl.Call(m, "Find", ctx, title)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindIdByTitle indicates an expected call of FindIdByTitle.
-func (mr *MockVoteRepositoryMockRecorder) FindIdByTitle(ctx, title interface{}) *gomock.Call {
+// Find indicates an expected call of Find.
+func (mr *MockVoteRepositoryMockRecorder) Find(ctx, title interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdByTitle", reflect.TypeOf((*MockVoteRepository)(nil).FindIdByTitle), ctx, title)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockVoteRepository)(nil).Find), ctx, title)
 }
 
 // Insert mocks base method.

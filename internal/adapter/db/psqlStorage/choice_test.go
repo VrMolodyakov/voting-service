@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/VrMolodyakov/vote-service/internal/adapter/db/psqlStorage/mocks"
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 	"github.com/driftprogramming/pgxpoolmock"
@@ -15,6 +16,11 @@ import (
 
 type choiceMockRow struct {
 	title string
+	Err   error
+}
+
+type updateRow struct {
+	count int
 	Err   error
 }
 
@@ -29,20 +35,30 @@ func (this choiceEntityRow) Scan(dest ...interface{}) error {
 	if this.title == "" {
 		return pgx.ErrNoRows
 	}
-	choice := dest[0].(*entity.Choice)
-
-	choice.VoteId = this.voteId
-	choice.Title = this.title
-	choice.Count = this.count
+	title := dest[0].(*string)
+	count := dest[1].(*int)
+	voteId := dest[2].(*int)
+	*voteId = this.voteId
+	*title = this.title
+	*count = this.count
 	return nil
 }
 
 func (this choiceMockRow) Scan(dest ...interface{}) error {
-	if this.title == "" {
+	if this.title == "" || this.Err != nil {
 		return pgx.ErrNoRows
 	}
 	title := dest[0].(*string)
 	*title = this.title
+	return nil
+}
+
+func (this updateRow) Scan(dest ...interface{}) error {
+	if this.Err != nil {
+		return this.Err
+	}
+	count := dest[0].(*int)
+	*count = this.count
 	return nil
 }
 
@@ -63,7 +79,7 @@ func TestInsertChoice(t *testing.T) {
 		isError bool
 	}{
 		{
-			title: "should insert successfully",
+			title: "Inset() should insert successfully",
 			input: entity.Choice{
 				Title:  "test title",
 				Count:  10,
@@ -77,14 +93,28 @@ func TestInsertChoice(t *testing.T) {
 			isError: false,
 		},
 		{
-			title: "should return error due to psql error",
+			title: "Inset() should return error due to psql error",
 			input: entity.Choice{
 				Title:  "test title",
 				Count:  10,
 				VoteId: 1,
 			},
 			mock: func() {
-				row := choiceMockRow{"", errors.New("psql error")}
+				row := choiceMockRow{"choice title", errors.New("psql error")}
+				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+			},
+			want:    "",
+			isError: true,
+		},
+		{
+			title: "Inset() should return error due to empty title",
+			input: entity.Choice{
+				Title:  "test title",
+				Count:  10,
+				VoteId: 1,
+			},
+			mock: func() {
+				row := choiceMockRow{"", nil}
 				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
 			},
 			want:    "",
@@ -206,22 +236,57 @@ func TestUpdateById(t *testing.T) {
 		title   string
 		mock    mockCall
 		input   args
+		want    int
 		isError bool
 	}{
 		{
 			title: "should update successfully",
 			input: args{1, 1, "title"},
 			mock: func() {
-				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil)
+				tx := mocks.NewMockTx(ctrl)
+				mockPool.EXPECT().BeginTx(gomock.Any(), gomock.Any()).Return(tx, nil)
+				row := updateRow{count: 1, Err: nil}
+				tx.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+				tx.EXPECT().Commit(gomock.Any()).Return(nil)
 			},
+			want:    1,
 			isError: false,
 		},
 		{
-			title: "update should return error",
+			title: "couldn't start Tx and Update() should return error",
 			input: args{1, 1, "title"},
 			mock: func() {
-				mockPool.EXPECT().Exec(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("internal error"))
+				mockPool.EXPECT().BeginTx(gomock.Any(), gomock.Any()).Return(nil, errors.New("internal db error"))
 			},
+			want:    -1,
+			isError: true,
+		},
+		{
+			title: "QueryRow() couldn't be executed and Update() should return error",
+			input: args{1, 1, "title"},
+			mock: func() {
+				tx := mocks.NewMockTx(ctrl)
+				mockPool.EXPECT().BeginTx(gomock.Any(), gomock.Any()).Return(tx, nil)
+				row := updateRow{count: 0, Err: errors.New("internal db error")}
+				tx.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+				tx.EXPECT().Rollback(gomock.Any())
+			},
+			want:    -1,
+			isError: true,
+		},
+		{
+			title: "couldn't execute Commit() and Update() should return error",
+			input: args{1, 1, "title"},
+			mock: func() {
+				tx := mocks.NewMockTx(ctrl)
+				mockPool.EXPECT().BeginTx(gomock.Any(), gomock.Any()).Return(tx, nil)
+				row := updateRow{count: 1, Err: nil}
+				tx.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+				tx.EXPECT().Commit(gomock.Any()).Return(errors.New("internal db error"))
+				tx.EXPECT().Rollback(gomock.Any())
+
+			},
+			want:    -1,
 			isError: true,
 		},
 	}
@@ -229,11 +294,13 @@ func TestUpdateById(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			test.mock()
-			_, err := choiceRepo.IncrementUpdate(context.Background(), test.input.count, test.input.voteId, test.input.title)
+			got, err := choiceRepo.Update(context.Background(), test.input.count, test.input.voteId, test.input.title)
 			if !test.isError {
-				assert.Equal(t, err, nil)
+				assert.NoError(t, err)
+				assert.Equal(t, got, test.want)
 			} else {
 				assert.Error(t, err)
+				assert.Equal(t, got, test.want)
 			}
 
 		})
@@ -260,29 +327,42 @@ func TestFindChoicesByVoteIdAndTitle(t *testing.T) {
 		isError bool
 	}{
 		{
-			title: "should find successfully",
+			title: "FindChoice() should find successfully",
 			input: args{
 				title:  "choice title",
 				voteId: 1,
 			},
 			mock: func() {
 				row := choiceEntityRow{"choice title", 1, 1, nil}
-				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
 			},
 			want:    entity.Choice{"choice title", 1, 1},
 			isError: false,
 		},
 		{
-			title: "should return error due to psql error",
+			title: "FindChoice() should return error due to psql error",
 			input: args{
 				title:  "choice title",
 				voteId: 1,
 			},
 			mock: func() {
-				row := choiceMockRow{"", errors.New("psql error")}
-				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+				row := choiceMockRow{"choice title", errors.New("psql error")}
+				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
 			},
-			want:    entity.Choice{"choice title", 1, 1},
+			want:    entity.Choice{},
+			isError: true,
+		},
+		{
+			title: "FindChoice() should return error due to empty title",
+			input: args{
+				title:  "choice title",
+				voteId: 1,
+			},
+			mock: func() {
+				row := choiceMockRow{"", nil}
+				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
+			},
+			want:    entity.Choice{},
 			isError: true,
 		},
 	}

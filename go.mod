@@ -6,6 +6,7 @@ require github.com/jackc/pgx/v4 v4.17.0
 
 require (
 	github.com/BurntSushi/toml v1.2.0 // indirect
+	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/driftprogramming/pgxpoolmock v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -19,6 +20,7 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -26,6 +28,7 @@ require (
 )
 
 require (
+	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/ilyakaznacheev/cleanenv v1.3.0
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect

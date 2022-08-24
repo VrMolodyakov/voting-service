@@ -20,7 +20,7 @@ func NewVoteStorage(pool *pgxpool.Pool, logger *logging.Logger) *voteRepository 
 	return &voteRepository{client: pool, logger: logger}
 }
 
-func (v *voteRepository) InsertVote(ctx context.Context, vote string) (int, error) {
+func (v *voteRepository) Insert(ctx context.Context, vote string) (int, error) {
 	sql := `INSERT INTO vote(vote_title)
 			SELECT $1
 			WHERE NOT EXISTS (SELECT vote_id FROM vote WHERE vote_title=$2) RETURNING vote_id`
@@ -35,7 +35,7 @@ func (v *voteRepository) InsertVote(ctx context.Context, vote string) (int, erro
 	return id, nil
 }
 
-func (v *voteRepository) FindVote(ctx context.Context, title string) (int, error) {
+func (v *voteRepository) Find(ctx context.Context, title string) (int, error) {
 	sql := `SELECT vote_id FROM vote WHERE vote_title = $1`
 	var id int
 	err := v.client.QueryRow(ctx, sql, title).Scan(&id)
@@ -47,7 +47,7 @@ func (v *voteRepository) FindVote(ctx context.Context, title string) (int, error
 	return id, nil
 }
 
-func (v *voteRepository) DeleteVote(ctx context.Context, id string) error {
+func (v *voteRepository) Delete(ctx context.Context, id string) error {
 	sql := `DELETE FROM VOTE
 			WHERE vote_id = $1`
 	_, err := v.client.Exec(ctx, sql, id)

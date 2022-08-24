@@ -67,21 +67,10 @@ func (c *choiceRepository) FindChoice(ctx context.Context, id int, choiceTitle s
 	return choice, nil
 }
 
-func (c *choiceRepository) IncrementUpdate(ctx context.Context, count int, voteId int, title string) (int, error) {
+func (c *choiceRepository) Update(ctx context.Context, count int, voteId int, title string) (int, error) {
 	sql := `UPDATE choice
 			SET count = count + $1
 			WHERE choice_title = $2 AND vote_id = $3  RETURNING count`
-	return c.update(ctx, sql, count, voteId, title)
-}
-
-func (c *choiceRepository) SetUpdate(ctx context.Context, count int, voteId int, title string) (int, error) {
-	sql := `UPDATE choice
-			SET count = $1
-			WHERE choice_title = $2 AND vote_id = $3  RETURNING count`
-	return c.update(ctx, sql, count, voteId, title)
-}
-
-func (c *choiceRepository) update(ctx context.Context, sql string, count int, voteId int, title string) (int, error) {
 	tx, err := c.client.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
 		c.logger.Errorf("cannot begin Tx due to %v", err)
@@ -90,8 +79,6 @@ func (c *choiceRepository) update(ctx context.Context, sql string, count int, vo
 	defer func() {
 		if err != nil {
 			tx.Rollback(ctx)
-		} else {
-			tx.Commit(ctx)
 		}
 	}()
 	var updCount int
@@ -101,7 +88,7 @@ func (c *choiceRepository) update(ctx context.Context, sql string, count int, vo
 		c.logger.Error(err)
 		return -1, err
 	}
-	if err := tx.Commit(ctx); err != nil {
+	if err = tx.Commit(ctx); err != nil {
 		c.logger.Errorf("cannot commit Tx due to %v", err)
 		return -1, err
 	}
