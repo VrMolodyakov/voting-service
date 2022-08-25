@@ -2,8 +2,10 @@ package psqlStorage
 
 import (
 	"context"
+	"errors"
 
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
+	"github.com/VrMolodyakov/vote-service/internal/errs"
 	psql "github.com/VrMolodyakov/vote-service/pkg/client/postgresql"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 	"github.com/jackc/pgx/v4"
@@ -84,8 +86,9 @@ func (c *choiceRepository) Update(ctx context.Context, count int, voteId int, ti
 	var updCount int
 	err = tx.QueryRow(ctx, sql, count, title, voteId).Scan(&updCount)
 	if err != nil {
-		err = psql.ErrExecuteQuery(err)
-		c.logger.Error(err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return -1, errs.ErrChoiceTitleNotExist
+		}
 		return -1, err
 	}
 	if err = tx.Commit(ctx); err != nil {

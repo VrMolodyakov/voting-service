@@ -68,7 +68,10 @@ func (a *app) startHttp() {
 	choiceService := service.NewChoiceService(cacheService, voteService, choiceRepo, a.logger)
 
 	a.router = mux.NewRouter()
-	a.initializeRouters(choiceService, voteService)
+	handler := handler.NewVoteHandler(a.logger, voteService, choiceService)
+	handler.InitRoutes(a.router)
+
+	//a.initializeRouters(choiceService, voteService)
 	a.logger.Info("start listening...")
 	port := fmt.Sprintf(":%s", a.cfg.Port)
 	server := &http.Server{

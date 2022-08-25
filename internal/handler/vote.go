@@ -7,7 +7,6 @@ import (
 
 	"github.com/VrMolodyakov/vote-service/internal/domain/entity"
 	"github.com/VrMolodyakov/vote-service/internal/errs"
-	"github.com/VrMolodyakov/vote-service/pkg/logging"
 	"github.com/gorilla/mux"
 )
 
@@ -15,16 +14,6 @@ const (
 	prefix string = ""
 	indent string = "   "
 )
-
-type handler struct {
-	logger        *logging.Logger
-	voteService   VoteService
-	choiceService ChoiceService
-}
-
-func NewVoteHandler(logger *logging.Logger, voteService VoteService, choiceService ChoiceService) *handler {
-	return &handler{logger: logger, voteService: voteService, choiceService: choiceService}
-}
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("inside Create handler")
@@ -41,24 +30,24 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	choices := dtoToChoices(id, vote.Choices)
-	var respose VoteResponse
-	respose.VoteTitle = vote.VoteTitle
+	var response VoteResponse
+	response.VoteTitle = vote.VoteTitle
 	for _, choice := range choices {
 		choice, err := h.choiceService.Create(ctx, choice)
 		if err != nil {
 			errorResponse(w, err)
 			return
 		}
-		respose.Choices = append(respose.Choices, ChoiceResponse{ChoiceTitle: choice, Count: 0})
+		response.Choices = append(response.Choices, ChoiceResponse{ChoiceTitle: choice, Count: 0})
 
 	}
-	jsonReponce, err := json.MarshalIndent(respose, prefix, indent)
+	jsonReponce, err := json.MarshalIndent(response, prefix, indent)
 	if err != nil {
 		errorResponse(w, err)
 		return
 	}
 	h.logger.Debug(vote)
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	w.Write(jsonReponce)
 
 }
@@ -128,7 +117,7 @@ func errorResponse(w http.ResponseWriter, err error) {
 		errors.Is(err, errs.ErrTitleAlreadyExist) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	} else {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 	}
 }
 

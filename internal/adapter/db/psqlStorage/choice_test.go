@@ -106,20 +106,6 @@ func TestInsertChoice(t *testing.T) {
 			want:    "",
 			isError: true,
 		},
-		{
-			title: "Inset() should return error due to empty title",
-			input: entity.Choice{
-				Title:  "test title",
-				Count:  10,
-				VoteId: 1,
-			},
-			mock: func() {
-				row := choiceMockRow{"", nil}
-				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
-			},
-			want:    "",
-			isError: true,
-		},
 	}
 
 	for _, test := range tests {
@@ -347,19 +333,6 @@ func TestFindChoicesByVoteIdAndTitle(t *testing.T) {
 			},
 			mock: func() {
 				row := choiceMockRow{"choice title", errors.New("psql error")}
-				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
-			},
-			want:    entity.Choice{},
-			isError: true,
-		},
-		{
-			title: "FindChoice() should return error due to empty title",
-			input: args{
-				title:  "choice title",
-				voteId: 1,
-			},
-			mock: func() {
-				row := choiceMockRow{"", nil}
 				mockPool.EXPECT().QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(row)
 			},
 			want:    entity.Choice{},

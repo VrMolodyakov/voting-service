@@ -25,7 +25,7 @@ func (c *cacheService) Save(voteTitle string, choiceTitle string, count int, exp
 	if voteTitle == "" {
 		return errs.ErrEmptyVoteTitle
 	}
-	if voteTitle == "" {
+	if choiceTitle == "" {
 		return errs.ErrEmptyChoiceTitle
 	}
 	return c.cache.Set(voteTitle, choiceTitle, count, expireAt)
@@ -35,7 +35,7 @@ func (c *cacheService) Get(voteTitle string, choiceTitle string) (int, error) {
 	if voteTitle == "" {
 		return -1, errs.ErrEmptyVoteTitle
 	}
-	if voteTitle == "" {
+	if choiceTitle == "" {
 		return -1, errs.ErrEmptyChoiceTitle
 	}
 	return c.cache.Get(voteTitle, choiceTitle)

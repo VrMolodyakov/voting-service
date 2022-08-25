@@ -103,19 +103,19 @@ func (mr *MockVoteServiceMockRecorder) Create(ctx, title interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockVoteService)(nil).Create), ctx, title)
 }
 
-// GetByTitle mocks base method.
-func (m *MockVoteService) GetByTitle(ctx context.Context, title string) (int, error) {
+// Get mocks base method.
+func (m *MockVoteService) Get(ctx context.Context, title string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByTitle", ctx, title)
+	ret := m.ctrl.Call(m, "Get", ctx, title)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByTitle indicates an expected call of GetByTitle.
-func (mr *MockVoteServiceMockRecorder) GetByTitle(ctx, title interface{}) *gomock.Call {
+// Get indicates an expected call of Get.
+func (mr *MockVoteServiceMockRecorder) Get(ctx, title interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTitle", reflect.TypeOf((*MockVoteService)(nil).GetByTitle), ctx, title)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockVoteService)(nil).Get), ctx, title)
 }
 
 // MockСhoiceRepository is a mock of СhoiceRepository interface.
@@ -141,34 +141,34 @@ func (m *MockСhoiceRepository) EXPECT() *MockСhoiceRepositoryMockRecorder {
 	return m.recorder
 }
 
-// FindChoicesByVoteId mocks base method.
-func (m *MockСhoiceRepository) FindChoicesByVoteId(ctx context.Context, id int) ([]entity.Choice, error) {
+// FindChoice mocks base method.
+func (m *MockСhoiceRepository) FindChoice(ctx context.Context, id int, choiceTitle string) (entity.Choice, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindChoicesByVoteId", ctx, id)
-	ret0, _ := ret[0].([]entity.Choice)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindChoicesByVoteId indicates an expected call of FindChoicesByVoteId.
-func (mr *MockСhoiceRepositoryMockRecorder) FindChoicesByVoteId(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoicesByVoteId", reflect.TypeOf((*MockСhoiceRepository)(nil).FindChoicesByVoteId), ctx, id)
-}
-
-// FindChoicesByVoteIdAndTitle mocks base method.
-func (m *MockСhoiceRepository) FindChoicesByVoteIdAndTitle(ctx context.Context, id int, choiceTitle string) (entity.Choice, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindChoicesByVoteIdAndTitle", ctx, id, choiceTitle)
+	ret := m.ctrl.Call(m, "FindChoice", ctx, id, choiceTitle)
 	ret0, _ := ret[0].(entity.Choice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindChoicesByVoteIdAndTitle indicates an expected call of FindChoicesByVoteIdAndTitle.
-func (mr *MockСhoiceRepositoryMockRecorder) FindChoicesByVoteIdAndTitle(ctx, id, choiceTitle interface{}) *gomock.Call {
+// FindChoice indicates an expected call of FindChoice.
+func (mr *MockСhoiceRepositoryMockRecorder) FindChoice(ctx, id, choiceTitle interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoicesByVoteIdAndTitle", reflect.TypeOf((*MockСhoiceRepository)(nil).FindChoicesByVoteIdAndTitle), ctx, id, choiceTitle)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoice", reflect.TypeOf((*MockСhoiceRepository)(nil).FindChoice), ctx, id, choiceTitle)
+}
+
+// FindChoices mocks base method.
+func (m *MockСhoiceRepository) FindChoices(ctx context.Context, id int) ([]entity.Choice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindChoices", ctx, id)
+	ret0, _ := ret[0].([]entity.Choice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindChoices indicates an expected call of FindChoices.
+func (mr *MockСhoiceRepositoryMockRecorder) FindChoices(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChoices", reflect.TypeOf((*MockСhoiceRepository)(nil).FindChoices), ctx, id)
 }
 
 // Insert mocks base method.
@@ -186,17 +186,17 @@ func (mr *MockСhoiceRepositoryMockRecorder) Insert(ctx, choice interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockСhoiceRepository)(nil).Insert), ctx, choice)
 }
 
-// UpdateByTitleAndId mocks base method.
-func (m *MockСhoiceRepository) UpdateByTitleAndId(ctx context.Context, count, voteId int, title string) (int, error) {
+// Update mocks base method.
+func (m *MockСhoiceRepository) Update(ctx context.Context, count, voteId int, title string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateByTitleAndId", ctx, count, voteId, title)
+	ret := m.ctrl.Call(m, "Update", ctx, count, voteId, title)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateByTitleAndId indicates an expected call of UpdateByTitleAndId.
-func (mr *MockСhoiceRepositoryMockRecorder) UpdateByTitleAndId(ctx, count, voteId, title interface{}) *gomock.Call {
+// Update indicates an expected call of Update.
+func (mr *MockСhoiceRepositoryMockRecorder) Update(ctx, count, voteId, title interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByTitleAndId", reflect.TypeOf((*MockСhoiceRepository)(nil).UpdateByTitleAndId), ctx, count, voteId, title)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockСhoiceRepository)(nil).Update), ctx, count, voteId, title)
 }

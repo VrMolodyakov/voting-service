@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/VrMolodyakov/vote-service/internal/domain/service/mocks"
+	"github.com/VrMolodyakov/vote-service/internal/errs"
 	"github.com/VrMolodyakov/vote-service/pkg/logging"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -109,9 +110,10 @@ func TestGetByTitle(t *testing.T) {
 			title: "wrong vote titlle and Get should return error",
 			mockCall: func() *voteService {
 				logger := logging.GetLogger("debug")
+				mockRepo.EXPECT().Find(gomock.Any(), gomock.Any()).Return(-1, errs.ErrTitleNotExist)
 				return NewVoteService(mockRepo, logger)
 			},
-			input:   "",
+			input:   "wrong title",
 			want:    -1,
 			isError: true,
 		},
