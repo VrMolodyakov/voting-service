@@ -1,0 +1,7 @@
+language: go
+go: "1.15"
+os: windows
+
+script:
+  # unit tests
+  - go test ./... -cover
