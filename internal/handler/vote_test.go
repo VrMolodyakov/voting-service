@@ -307,5 +307,3 @@ func clearResponse(s string) string {
 	temp := strings.ReplaceAll(s, "   ", "")
 	return strings.ReplaceAll(temp, "\n", "")
 }
-
-//			want: "{\n   \"vote\": \"Best pokemon\",\n   \"choices\": [\n      {\n         \"choice\": \"Pikachu\",\n         \"vote_count\": 0\n      },\n      {\n         \"choice\": \"Mew\",\n         \"vote_count\": 0\n      },\n      {\n         \"choice\": \"Noone\",\n         \"vote_count\": 0\n      }\n   ]\n}",
