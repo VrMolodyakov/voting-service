@@ -11,7 +11,7 @@ git clone https://github.com/VrMolodyakov/voting-service.git
 make start
 ```
 
-## Unit tes
+## Unit test
 
 ```sh
 make test 
